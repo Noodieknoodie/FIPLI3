@@ -1,0 +1,143 @@
+
+DATABASE_SCHEMA.md
+
+Overview  
+FIPLI uses a structured SQLite database to store household financial data, projection parameters, and scenario overrides. The schema is designed for deterministic calculations with strict data integrity rules.  
+
+Core Tables  
+
+Households  
+- household_id (Primary Key)  
+- household_name  
+- person1_first_name  
+- person1_last_name  
+- person1_dob  
+- person2_first_name  
+- person2_last_name  
+- person2_dob  
+- created_at  
+- updated_at  
+
+Plans  
+- plan_id (Primary Key)  
+- household_id (Foreign Key -> Households)  
+- plan_name  
+- created_at  
+- updated_at  
+- reference_person (1 or 2, determines DOB used for projections)  
+- plan_creation_year  
+
+Base Assumptions  
+- plan_id (Primary Key, Foreign Key -> Plans)  
+- default_growth_rate  
+- inflation_rate  
+- retirement_age_1  
+- retirement_age_2  
+- final_age_1  
+- final_age_2  
+- final_age_selector (1 or 2, determines which final age is used for projections)  
+
+Assets  
+- asset_id (Primary Key)  
+- plan_id (Foreign Key -> Plans)  
+- asset_category_id (Foreign Key -> Asset Categories)  
+- asset_name  
+- owner (person1, person2, joint)  
+- value (Initial Value)  
+- include_in_nest_egg (Boolean)  
+
+Asset Categories  
+- asset_category_id (Primary Key)  
+- plan_id (Foreign Key -> Plans)  
+- category_name  
+- category_order  
+
+Growth Rate Configurations  
+- growth_rate_id (Primary Key)  
+- asset_id (Foreign Key -> Assets, nullable)  
+- scenario_id (Foreign Key -> Scenarios, nullable)  
+- configuration_type (Default, Override, Stepwise)  
+- start_year  
+- end_year (Nullable, applies indefinitely if null)  
+- growth_rate  
+
+Liabilities  
+- liability_id (Primary Key)  
+- plan_id (Foreign Key -> Plans)  
+- liability_category_id (Foreign Key -> Liability Categories)  
+- liability_name  
+- owner (person1, person2, joint)  
+- value (Initial Value)  
+- interest_rate (Nullable)  
+- include_in_nest_egg (Boolean)  
+
+Liability Categories  
+- liability_category_id (Primary Key)  
+- plan_id (Foreign Key -> Plans)  
+- category_name  
+- category_order  
+
+Scheduled Inflows and Outflows  
+- inflow_outflow_id (Primary Key)  
+- plan_id (Foreign Key -> Plans)  
+- type (Inflow or Outflow)  
+- name  
+- owner (person1, person2, joint)  
+- annual_amount  
+- start_year  
+- end_year (Nullable)  
+- apply_inflation (Boolean)  
+
+Retirement Income Plans  
+- income_plan_id (Primary Key)  
+- plan_id (Foreign Key -> Plans)  
+- name  
+- owner (person1, person2, joint)  
+- annual_income  
+- start_age  
+- end_age (Nullable)  
+- include_in_nest_egg (Boolean)  
+
+Scenarios  
+- scenario_id (Primary Key)  
+- plan_id (Foreign Key -> Plans)  
+- scenario_name  
+- scenario_color (For visualization)  
+- created_at  
+
+Scenario Assumptions  
+- scenario_id (Primary Key, Foreign Key -> Scenarios)  
+- retirement_age_1  
+- retirement_age_2  
+- default_growth_rate  
+- inflation_rate  
+- annual_retirement_spending  
+
+Scenario Overrides  
+- override_id (Primary Key)  
+- scenario_id (Foreign Key -> Scenarios)  
+- asset_id (Foreign Key -> Assets, nullable)  
+- liability_id (Foreign Key -> Liabilities, nullable)  
+- inflow_outflow_id (Foreign Key -> Inflows_Outflows, nullable)  
+- retirement_income_plan_id (Foreign Key -> Retirement Income Plans, nullable)  
+- override_field (Field being overridden)  
+- override_value (New value in appropriate format)  
+
+Indexes  
+- Index on household_id in Plans  
+- Index on plan_id in Assets  
+- Index on plan_id in Liabilities  
+- Index on plan_id in Inflows_Outflows  
+- Index on plan_id in Retirement Income Plans  
+- Index on plan_id in Scenarios  
+- Index on scenario_id in Scenario Overrides  
+
+Constraints  
+- No null values for required financial fields  
+- Scenario overrides must reference valid existing records  
+- Stepwise growth periods must be non-overlapping  
+- Start year must be before end year where applicable  
+- Nest egg projections can only include flagged assets and liabilities  
+
+Next Steps  
+Upon completion of this document, the next step is to generate DEVELOPMENT_WORKFLOW.md. Confirm before proceeding.  
