@@ -1,8 +1,15 @@
-# Milestones
-- Established direct SQLite database access with validation framework (no ORM)
-- Restructured project by functional domains (validation, projections, scenarios) with no abstraction layers
-- Built comprehensive schema validation with explicit error handling for tables, relationships, and business rules
+# Project Memory File
 
-# Critical Points
-- Queries must stay within functional domains - no shared database layer
-- Schema validation must complete successfully before any business logic
+(keep lines short and concise if possible)
+
+# ENTRY FORMAT 
+## [TIMESTAMP]
+Feature: [Name]
+Problem: [What we're solving]
+Approach: [How we're solving it]
+Decisions: [Key choices made]
+Debug Points: [Where we added logging]
+
+---
+
+
