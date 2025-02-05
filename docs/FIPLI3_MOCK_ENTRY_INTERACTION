@@ -1,0 +1,127 @@
+
+# HOUSEHOLD INFORMATION
+---------------------------------------------------
+### User Entry:
+- household_name: Smith Family
+- person1_first_name: John
+- person1_last_name: Smith
+- person1_dob: 1975-06-15
+- person2_first_name: Jane
+- person2_last_name: Smith
+- person2_dob: 1978-09-22
+
+### Database Handling:
+**Table: households**
+- household_id: (Auto-generated)
+- created_at: (Auto-generated)
+- updated_at: (Auto-generated)
+- User Entries: household_name, person1_first_name, person1_last_name, person1_dob, person2_first_name, person2_last_name, person2_dob
+
+
+# PLANS
+---------------------------------------------------
+### User Entry:
+Plan 1:
+- plan_name: Liquid Assets, RE Sale in 2040, SS Included, Max Spend to 95
+
+Plan 2:
+- plan_name: Liquid Assets, No RE, No SS, Retire at 70, Max Spend to 100
+
+### Database Handling:
+**Table: plans**
+- plan_id: (Auto-generated)
+- household_id: (Auto-linked)
+- plan_creation_year: (Auto-generated)
+- created_at: (Auto-generated)
+- updated_at: (Auto-generated)
+- User Entries: plan_name
+
+
+# BASE ASSUMPTIONS
+---------------------------------------------------
+### User Entry:
+Plan 1:
+- default_growth_rate: 5.0%
+- inflation_rate: 2.5%
+- retirement_age_1: 65
+- retirement_age_2: 63
+- final_age_1: 95
+- final_age_2: 92
+- reference_person: John (John’s Final Age is used)
+
+Plan 2:
+- default_growth_rate: 4.2%
+- inflation_rate: 3.0%
+- retirement_age_1: 70
+- retirement_age_2: 68
+- final_age_1: 100
+- final_age_2: 97
+- reference_person: Jane (Jane’s Final Age is used)
+
+### Database Handling:
+**Table: base_assumptions**
+- plan_id: (Linked)
+- created_at: (Auto-generated)
+- updated_at: (Auto-generated)
+- User Entries: default_growth_rate, inflation_rate, retirement_age_1, retirement_age_2, final_age_1, final_age_2
+
+**Table: plans**
+- reference_person: (Stored here)
+
+
+# ASSETS
+---------------------------------------------------
+### User Entry:
+Plan 1:
+- category_name: Non-Qualified
+  - asset_name: Joint | owner: Joint | value: 800000 | include_in_nest_egg: ✅ | configuration_type: Default
+  - asset_name: John's Individual | owner: John | value: 500000 | include_in_nest_egg: ✅ | configuration_type: Override | growth_rate: 8.0%
+  - asset_name: Jane's Individual | owner: Jane | value: 400000 | include_in_nest_egg: ❌ | configuration_type: Stepwise | stepwise_periods: (2025-2029: 10.0%, 2037-2052: 3.0%)
+
+- category_name: Qualified
+  - asset_name: John's IRA | owner: John | value: 350000 | include_in_nest_egg: ✅ | configuration_type: Default
+  - asset_name: John's 401K | owner: John | value: 600000 | include_in_nest_egg: ✅ | configuration_type: Override | growth_rate: 7.5%
+  - asset_name: Jane's 403B | owner: Jane | value: 450000 | include_in_nest_egg: ✅ | configuration_type: Stepwise | stepwise_periods: (2026-2030: 9.0%, 2035-2050: 4.0%)
+
+- category_name: Real Estate
+  - asset_name: Primary Home | owner: Joint | value: 700000 | include_in_nest_egg: ✅ | configuration_type: Override | growth_rate: 9.0%
+
+Plan 2:
+- category_name: Non-Qualified
+  - asset_name: Joint | owner: Joint | value: 825000 | include_in_nest_egg: ✅ | configuration_type: Default
+  - asset_name: John's Individual | owner: John | value: 515000 | include_in_nest_egg: ✅ | configuration_type: Override | growth_rate: 7.8%
+
+- category_name: Qualified
+  - asset_name: John's IRA | owner: John | value: 365000 | include_in_nest_egg: ✅ | configuration_type: Default
+  - asset_name: John's 401K | owner: John | value: 625000 | include_in_nest_egg: ✅ | configuration_type: Override | growth_rate: 7.8%
+
+- category_name: Real Estate
+  - asset_name: Primary Home | owner: Joint | value: 750000 | include_in_nest_egg: ❌ | configuration_type: Override | growth_rate: 9.0%
+  - asset_name: Hawaii Condo | owner: Joint | value: 300000 | include_in_nest_egg: ❌ | configuration_type: Stepwise | stepwise_periods: (2026-2040: 6.0%, 2041-2050: 12.0%)
+
+- category_name: Tax-Free
+  - asset_name: Charitable Remainder Trust | owner: Joint | value: 100000 | include_in_nest_egg: ❌ | configuration_type: Override | growth_rate: 3.0%
+  - asset_name: Cash | owner: Joint | value: 45000 | include_in_nest_egg: ✅ | configuration_type: Default
+
+### Database Handling:
+**Table: asset_categories**  
+- asset_category_id: (Auto-generated)  
+- plan_id: (Linked)  
+- User Entries: category_name  
+
+**Table: assets**
+- asset_id: (Auto-generated)
+- plan_id: (Linked)
+- asset_category_id: (Linked)
+- created_at: (Auto-generated)
+- updated_at: (Auto-generated)
+- User Entries: asset_name, owner, value, include_in_nest_egg, configuration_type
+
+**Table: growth_rate_configurations** (Only if configuration_type is Override or Stepwise)
+- growth_rate_id: (Auto-generated)
+- asset_id: (Linked)
+- created_at: (Auto-generated)
+- updated_at: (Auto-generated)
+- User Entries: configuration_type, stepwise_periods (for stepwise: start_year, end_year, growth_rate)
+
+---------------------------------------------------

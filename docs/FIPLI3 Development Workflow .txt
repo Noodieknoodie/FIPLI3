@@ -19,7 +19,7 @@ This document defines the structured development workflow for building FIPLI usi
 4. Implement controlled **write operations** only after read functions are confirmed.
 
 ## 2. Core Projection Logic
-1. Retrieve **base assumptions** and establish time tracking.
+1. Retrieve **base assumptions** and establish time tracking. (see reference_person in Plans table)
 2. Process all **assets flagged for nest egg inclusion**.
 3. Apply **growth rate logic** (default, override, stepwise).
 4. Process **liabilities**, applying interest accrual where applicable.

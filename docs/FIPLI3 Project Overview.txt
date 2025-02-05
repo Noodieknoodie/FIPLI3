@@ -21,6 +21,7 @@ FIPLI is a deterministic financial projection system for scenario analysis and c
 1. Retrieve base facts for time handling and projection constraints.
 2. Process all assets flagged for nest egg inclusion.
 3. Apply growth rate logic (default, override, stepwise).
+
 4. Process liabilities and apply interest accrual if applicable.
 5. Process scheduled inflows and outflows, adjusting for inflation when required.
 6. Process retirement income and apply inflation adjustments where enabled.

@@ -1,143 +1,149 @@
+CREATE TABLE households (
+    household_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    household_name TEXT NOT NULL,
+    person1_first_name TEXT NOT NULL,
+    person1_last_name TEXT NOT NULL,
+    person1_dob DATE NOT NULL,
+    person2_first_name TEXT,
+    person2_last_name TEXT,
+    person2_dob DATE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-DATABASE_SCHEMA.md
+CREATE TABLE plans (
+    plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    household_id INTEGER NOT NULL,
+    plan_name TEXT NOT NULL,
+    reference_person INTEGER NOT NULL DEFAULT 1 CHECK(reference_person IN (1,2)),
+    plan_creation_year INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (household_id) REFERENCES households (household_id) ON DELETE CASCADE
+);
 
-Overview  
-FIPLI uses a structured SQLite database to store household financial data, projection parameters, and scenario overrides. The schema is designed for deterministic calculations with strict data integrity rules.  
+CREATE TABLE base_assumptions (
+    plan_id INTEGER PRIMARY KEY,
+    retirement_age_1 INTEGER,
+    retirement_age_2 INTEGER,
+    final_age_1 INTEGER,
+    final_age_2 INTEGER,
+    default_growth_rate REAL,
+    inflation_rate REAL,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+);
 
-Core Tables  
+CREATE TABLE scenarios (
+    scenario_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    scenario_name TEXT NOT NULL,
+    scenario_color TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+);
 
-Households  
-- household_id (Primary Key)  
-- household_name  
-- person1_first_name  
-- person1_last_name  
-- person1_dob  
-- person2_first_name  
-- person2_last_name  
-- person2_dob  
-- created_at  
-- updated_at  
+CREATE TABLE scenario_assumptions (
+    scenario_id INTEGER PRIMARY KEY,
+    retirement_age_1 INTEGER,
+    retirement_age_2 INTEGER,
+    default_growth_rate REAL,
+    inflation_rate REAL,
+    annual_retirement_spending REAL,
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
+);
 
-Plans  
-- plan_id (Primary Key)  
-- household_id (Foreign Key -> Households)  
-- plan_name  
-- created_at  
-- updated_at  
-- reference_person (1 or 2, determines DOB used for projections)  
-- plan_creation_year  
+CREATE TABLE scenario_overrides (
+    override_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scenario_id INTEGER NOT NULL,
+    asset_id INTEGER,
+    liability_id INTEGER,
+    inflow_outflow_id INTEGER,
+    retirement_income_plan_id INTEGER,
+    override_field TEXT NOT NULL,
+    override_value TEXT NOT NULL,
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE,
+    FOREIGN KEY (asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE,
+    FOREIGN KEY (liability_id) REFERENCES liabilities (liability_id) ON DELETE CASCADE,
+    FOREIGN KEY (inflow_outflow_id) REFERENCES inflows_outflows (inflow_outflow_id) ON DELETE CASCADE,
+    FOREIGN KEY (retirement_income_plan_id) REFERENCES retirement_income_plans (income_plan_id) ON DELETE CASCADE
+);
 
-Base Assumptions  
-- plan_id (Primary Key, Foreign Key -> Plans)  
-- default_growth_rate  
-- inflation_rate  
-- retirement_age_1  
-- retirement_age_2  
-- final_age_1  
-- final_age_2  
-- final_age_selector (1 or 2, determines which final age is used for projections)  
+CREATE TABLE asset_categories (
+    asset_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    category_name TEXT NOT NULL,
+    category_order INTEGER DEFAULT 0,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+);
 
-Assets  
-- asset_id (Primary Key)  
-- plan_id (Foreign Key -> Plans)  
-- asset_category_id (Foreign Key -> Asset Categories)  
-- asset_name  
-- owner (person1, person2, joint)  
-- value (Initial Value)  
-- include_in_nest_egg (Boolean)  
+CREATE TABLE assets (
+    asset_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    asset_category_id INTEGER NOT NULL,
+    asset_name TEXT NOT NULL,
+    owner TEXT NOT NULL,
+    value REAL NOT NULL,
+    include_in_nest_egg INTEGER DEFAULT 1,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
+    FOREIGN KEY (asset_category_id) REFERENCES asset_categories (asset_category_id) ON DELETE CASCADE
+);
 
-Asset Categories  
-- asset_category_id (Primary Key)  
-- plan_id (Foreign Key -> Plans)  
-- category_name  
-- category_order  
+CREATE TABLE liability_categories (
+    liability_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    category_name TEXT NOT NULL,
+    category_order INTEGER DEFAULT 0,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+);
 
-Growth Rate Configurations  
-- growth_rate_id (Primary Key)  
-- asset_id (Foreign Key -> Assets, nullable)  
-- scenario_id (Foreign Key -> Scenarios, nullable)  
-- configuration_type (Default, Override, Stepwise)  
-- start_year  
-- end_year (Nullable, applies indefinitely if null)  
-- growth_rate  
+CREATE TABLE liabilities (
+    liability_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    liability_category_id INTEGER NOT NULL,
+    liability_name TEXT NOT NULL,
+    owner TEXT NOT NULL,
+    value REAL NOT NULL,
+    interest_rate REAL,
+    include_in_nest_egg INTEGER DEFAULT 1,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
+    FOREIGN KEY (liability_category_id) REFERENCES liability_categories (liability_category_id) ON DELETE CASCADE
+);
 
-Liabilities  
-- liability_id (Primary Key)  
-- plan_id (Foreign Key -> Plans)  
-- liability_category_id (Foreign Key -> Liability Categories)  
-- liability_name  
-- owner (person1, person2, joint)  
-- value (Initial Value)  
-- interest_rate (Nullable)  
-- include_in_nest_egg (Boolean)  
+CREATE TABLE inflows_outflows (
+    inflow_outflow_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    owner TEXT NOT NULL,
+    annual_amount REAL NOT NULL,
+    start_year INTEGER NOT NULL,
+    end_year INTEGER,
+    apply_inflation INTEGER DEFAULT 0,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+);
 
-Liability Categories  
-- liability_category_id (Primary Key)  
-- plan_id (Foreign Key -> Plans)  
-- category_name  
-- category_order  
+CREATE TABLE retirement_income_plans (
+    income_plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    owner TEXT NOT NULL,
+    annual_income REAL NOT NULL,
+    start_age INTEGER NOT NULL,
+    end_age INTEGER,
+    include_in_nest_egg INTEGER DEFAULT 1,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+);
 
-Scheduled Inflows and Outflows  
-- inflow_outflow_id (Primary Key)  
-- plan_id (Foreign Key -> Plans)  
-- type (Inflow or Outflow)  
-- name  
-- owner (person1, person2, joint)  
-- annual_amount  
-- start_year  
-- end_year (Nullable)  
-- apply_inflation (Boolean)  
-
-Retirement Income Plans  
-- income_plan_id (Primary Key)  
-- plan_id (Foreign Key -> Plans)  
-- name  
-- owner (person1, person2, joint)  
-- annual_income  
-- start_age  
-- end_age (Nullable)  
-- include_in_nest_egg (Boolean)  
-
-Scenarios  
-- scenario_id (Primary Key)  
-- plan_id (Foreign Key -> Plans)  
-- scenario_name  
-- scenario_color (For visualization)  
-- created_at  
-
-Scenario Assumptions  
-- scenario_id (Primary Key, Foreign Key -> Scenarios)  
-- retirement_age_1  
-- retirement_age_2  
-- default_growth_rate  
-- inflation_rate  
-- annual_retirement_spending  
-
-Scenario Overrides  
-- override_id (Primary Key)  
-- scenario_id (Foreign Key -> Scenarios)  
-- asset_id (Foreign Key -> Assets, nullable)  
-- liability_id (Foreign Key -> Liabilities, nullable)  
-- inflow_outflow_id (Foreign Key -> Inflows_Outflows, nullable)  
-- retirement_income_plan_id (Foreign Key -> Retirement Income Plans, nullable)  
-- override_field (Field being overridden)  
-- override_value (New value in appropriate format)  
-
-Indexes  
-- Index on household_id in Plans  
-- Index on plan_id in Assets  
-- Index on plan_id in Liabilities  
-- Index on plan_id in Inflows_Outflows  
-- Index on plan_id in Retirement Income Plans  
-- Index on plan_id in Scenarios  
-- Index on scenario_id in Scenario Overrides  
-
-Constraints  
-- No null values for required financial fields  
-- Scenario overrides must reference valid existing records  
-- Stepwise growth periods must be non-overlapping  
-- Start year must be before end year where applicable  
-- Nest egg projections can only include flagged assets and liabilities  
-
-Next Steps  
-Upon completion of this document, the next step is to generate DEVELOPMENT_WORKFLOW.md. Confirm before proceeding.  
+CREATE TABLE growth_rate_configurations (
+    growth_rate_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    asset_id INTEGER,
+    retirement_income_plan_id INTEGER,
+    scenario_id INTEGER,
+    configuration_type TEXT NOT NULL,
+    start_year INTEGER NOT NULL,
+    end_year INTEGER,
+    growth_rate REAL NOT NULL,
+    FOREIGN KEY (asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE,
+    FOREIGN KEY (retirement_income_plan_id) REFERENCES retirement_income_plans (income_plan_id) ON DELETE CASCADE,
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
+);
