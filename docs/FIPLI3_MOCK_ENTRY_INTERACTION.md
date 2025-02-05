@@ -249,60 +249,187 @@ Plan 2:
 # SCENARIOS
 ---------------------------------------------------
 
+### User Entry:
+Plan 1:
+
+#### Scenario 1: Early Retirement, Higher Growth, No Real Estate
+- Modify Core Assumptions:
+  - retirement_age_1: 60
+  - retirement_age_2: 58
+  - default_growth_rate: 6.5%
+  - growth_rate_type: stepwise
+  - inflation_rate: 2.0%
+  - annual_ret_spending: 85000
+- Modify Assets:
+  - Remove: Primary Home (Real Estate)
+  - Modify: 
+    - John's Individual → growth_rate: 9.0%
+    - Jane's Individual → growth changed to Override, growth_rate: 7.5%
+- Modify Liabilities:
+  - Remove: Mortgage, Primary Home
+- Modify Inflows/Outflows:
+  - Remove: Rental Income
+  - Modify: Structured Settlement → annual_amount: 12000, end_year: 2030
+- Modify Retirement Income:
+  - Social Security (John) → start_age: 62, annual_income: 30000
+  - Social Security (Jane) → start_age: 60, annual_income: 28000
+
+### Database Handling:
+**Table: scenarios**
+- scenario_id: (Auto-generated)
+- plan_id: (Linked)
+- scenario_name: Early Retirement, Higher Growth, No Real Estate
+- created_at: (Auto-generated)
+
+**Table: scenario_assumptions**
+- scenario_id: (Linked)
+- retirement_age_1: 60
+- retirement_age_2: 58
+- default_growth_rate: 6.5%
+- growth_rate_type: stepwise
+- inflation_rate: 2.0%
+- annual_retirement_spending: 85000
+
+**Table: growth_rate_configurations**
+- scenario_id: (Linked)
+- asset_id: NULL (scenario-wide stepwise growth)
+- configuration_type: stepwise
+- start_year: 2025, end_year: 2035, growth_rate: 7.0%
+- start_year: 2036, end_year: 2050, growth_rate: 5.0%
+
+**Table: scenario_assets**
+- Remove Primary Home
+- Modify John's Individual (growth_rate → 9.0%)
+- Modify Jane's Individual (growth_rate → Override, 7.5%)
+
+**Table: scenario_liabilities**
+- Remove Mortgage, Primary Home
+
+**Table: scenario_inflows_outflows**
+- Remove Rental Income
+- Modify Structured Settlement (annual_amount → 12000, end_year → 2030)
+
+**Table: scenario_retirement_income**
+- Modify Social Security (John) (start_age → 62, annual_income → 30000)
+- Modify Social Security (Jane) (start_age → 60, annual_income → 28000)
 
 
+---
+
+### User Entry:
+Plan 1:
+
+#### Scenario 2: Delayed Retirement, Conservative Growth, Higher Spending
+- Modify Core Assumptions:
+  - retirement_age_1: 70
+  - retirement_age_2: 68
+  - default_growth_rate: 4.0%
+  - growth_rate_type: fixed
+  - inflation_rate: 3.0%
+  - annual_ret_spending: 100000
+- Modify Assets:
+  - Modify: 
+    - Joint → value: 850000
+    - John's 401K → growth_rate: 6.0%
+    - Jane's 403B → growth_rate: 5.5%
+- Modify Liabilities:
+  - Modify: 
+    - Mortgage, Primary Home → value: 250000, interest_rate: 5.5%
+- Modify Inflows/Outflows:
+  - Add: Consulting Work → annual_amount: 40000, start_year: 2026, end_year: 2035, apply_inflation: ✅
+- Modify Retirement Income:
+  - Social Security (John) → start_age: 70, annual_income: 42000
+  - Social Security (Jane) → start_age: 68, annual_income: 38000
+
+### Database Handling:
+**Table: scenarios**
+- scenario_id: (Auto-generated)
+- plan_id: (Linked)
+- scenario_name: Delayed Retirement, Conservative Growth, Higher Spending
+- created_at: (Auto-generated)
+
+**Table: scenario_assumptions**
+- scenario_id: (Linked)
+- retirement_age_1: 70
+- retirement_age_2: 68
+- default_growth_rate: 4.0%
+- growth_rate_type: fixed
+- inflation_rate: 3.0%
+- annual_retirement_spending: 100000
+
+**Table: scenario_assets**
+- Modify Joint (value → 850000)
+- Modify John's 401K (growth_rate → 6.0%)
+- Modify Jane's 403B (growth_rate → 5.5%)
+
+**Table: scenario_liabilities**
+- Modify Mortgage, Primary Home (value → 250000, interest_rate → 5.5%)
+
+**Table: scenario_inflows_outflows**
+- Add Consulting Work (annual_amount → 40000, start_year → 2026, end_year → 2035, apply_inflation → ✅)
+
+**Table: scenario_retirement_income**
+- Modify Social Security (John) (start_age → 70, annual_income → 42000)
+- Modify Social Security (Jane) (start_age → 68, annual_income → 38000)
 
 
-CORE SCENARIO ASSUMPTIONS:
+---
 
-Default growth rate
-Inflation rate
-Retirement age (person 1 and 2)
-Annual retirement spending
+### User Entry:
+Plan 1:
 
-ASSETS:
+#### Scenario 3: Aggressive Investment, No Retirement Spending, High Passive Income
+- Modify Core Assumptions:
+  - retirement_age_1: 65
+  - retirement_age_2: 63
+  - default_growth_rate: 8.0%
+  - growth_rate_type: stepwise
+  - inflation_rate: 2.5%
+  - annual_ret_spending: 0
+- Modify Assets:
+  - Modify: 
+    - John's Individual → growth changed to Stepwise, periods: (2025-2030: 12.0%, 2031-2040: 6.0%)
+    - Jane's 403B → growth changed to Stepwise, periods: (2026-2035: 10.0%, 2036-2050: 5.0%)
+  - Add:
+    - Private Equity Investment | owner: Joint | value: 500000 | include_in_nest_egg: ✅ | configuration_type: Override | growth_rate: 15.0%
+- Modify Liabilities:
+  - Remove: Business Loan
+- Modify Inflows/Outflows:
+  - Add: Dividend Portfolio | annual_amount: 30000 | start_year: 2025 | end_year: None | apply_inflation: ✅
+  - Modify: Rental Income → annual_amount: 30000, end_year: 2055
 
-Complete removal from scenario
-Initial value
-Include in nest egg flag
-Growth rate configurations:
+### Database Handling:
+**Table: scenarios**
+- scenario_id: (Auto-generated)
+- plan_id: (Linked)
+- scenario_name: Aggressive Investment, No Retirement Spending, High Passive Income
+- created_at: (Auto-generated)
 
-Toggle between custom/default growth
-Remove specific growth rate periods
-Modify start/end years for growth periods
-Growth rate values for specific periods
+**Table: scenario_assumptions**
+- scenario_id: (Linked)
+- retirement_age_1: 65
+- retirement_age_2: 63
+- default_growth_rate: 8.0%
+- growth_rate_type: stepwise
+- inflation_rate: 2.5%
+- annual_retirement_spending: 0
 
+**Table: growth_rate_configurations**
+- scenario_id: (Linked)
+- asset_id: NULL (scenario-wide stepwise growth)
+- configuration_type: stepwise
+- start_year: 2025, end_year: 2035, growth_rate: 9.0%
+- start_year: 2036, end_year: 2050, growth_rate: 5.5%
 
+**Table: scenario_assets**
+- Modify John's Individual (growth → Stepwise, periods: 2025-2030: 12.0%, 2031-2040: 6.0%)
+- Modify Jane's 403B (growth → Stepwise, periods: 2026-2035: 10.0%, 2036-2050: 5.0%)
+- Add Private Equity Investment (value → 500000, growth → Override, 15.0%)
 
-LIABILITIES:
-Complete removal from scenario
-Initial value
-Interest rate
-Include in nest egg flag
+**Table: scenario_liabilities**
+- Remove Business Loan
 
-INFLOWS_OUTFLOWS:
-Complete removal from scenario
-Annual amount
-Start year
-End year
-Apply inflation flag
+**Table: scenario_inflows_outflows**
+- Add Dividend Portfolio (annual_amount → 30000, start_year → 2025, apply_inflation → ✅)
+- Modify Rental Income (annual_amount → 30000, end_year → 2055)
 
-RETIREMENT_INCOME_PLANS:
-Complete removal from scenario
-Annual income amount
-Start age
-End age
-Apply inflation flag
-Include in nest egg flag
-
-Growth rate configurations:
-Toggle between custom/default growth
-Remove specific growth rate periods
-Modify start/end years for growth periods
-Growth rate values for specific periods
-
-Each of these represents an element that can be independently:
-Retained from base plan
-Modified with new values
-Removed from scenario calculations
-Toggled between default/custom configurations (where applicable)
