@@ -172,21 +172,7 @@ CREATE TABLE scenario_liabilities (
     FOREIGN KEY (original_liability_id) REFERENCES liabilities (liability_id) ON DELETE CASCADE,
     FOREIGN KEY (liability_category_id) REFERENCES liability_categories (liability_category_id) ON DELETE CASCADE
 )
-CREATE TABLE scenario_overrides (
-    override_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    scenario_id INTEGER NOT NULL,
-    asset_id INTEGER,
-    liability_id INTEGER,
-    inflow_outflow_id INTEGER,
-    retirement_income_plan_id INTEGER,
-    override_field TEXT,
-    override_value TEXT,
-    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE,
-    FOREIGN KEY (asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE,
-    FOREIGN KEY (liability_id) REFERENCES liabilities (liability_id) ON DELETE CASCADE,
-    FOREIGN KEY (inflow_outflow_id) REFERENCES inflows_outflows (inflow_outflow_id) ON DELETE CASCADE,
-    FOREIGN KEY (retirement_income_plan_id) REFERENCES retirement_income_plans (income_plan_id) ON DELETE CASCADE
-)
+
 CREATE TABLE scenario_retirement_income (
     scenario_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
     scenario_id INTEGER NOT NULL,
@@ -206,6 +192,19 @@ CREATE TABLE scenario_retirement_income (
     FOREIGN KEY (original_income_plan_id) REFERENCES retirement_income_plans (income_plan_id) ON DELETE CASCADE
 )
 CREATE TABLE sqlite_sequence(name,seq)
+
+
+CREATE TABLE projection_output (
+    projection_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    scenario_id INTEGER,  -- NULL means base plan (no scenario applied)
+    year INTEGER NOT NULL,  -- Each year from current year to death year
+    nest_egg_balance REAL NOT NULL,  -- Computed financial balance for that year
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
+);
+
 
 
 ---
@@ -233,3 +232,7 @@ CREATE INDEX idx_retirement_income_plans_owner_ages ON retirement_income_plans (
 CREATE INDEX idx_retirement_income_plans_plan_id ON retirement_income_plans (plan_id)
 CREATE INDEX idx_scenario_overrides_scenario_id ON scenario_overrides (scenario_id)
 CREATE INDEX idx_scenarios_plan_id ON scenarios (plan_id)
+
+CREATE INDEX idx_projection_plan_year ON projection_output (plan_id, year);
+CREATE INDEX idx_projection_scenario_year ON projection_output (scenario_id, year);
+
