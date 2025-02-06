@@ -1,27 +1,75 @@
-BEGIN TRANSACTION;
+-- Auto-generated schema from FIPLI_DB.db
+
+CREATE TABLE households (
+
+    household_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    household_name TEXT,
+
+    person1_first_name TEXT,
+
+    person1_last_name TEXT,
+
+    person1_dob DATE,
+
+    person2_first_name TEXT,
+
+    person2_last_name TEXT,
+
+    person2_dob DATE,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+);
+
+CREATE TABLE sqlite_sequence(name,seq);
+
 CREATE TABLE asset_categories (
 
     asset_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     plan_id INTEGER NOT NULL,
 
-    category_name TEXT NOT NULL,
-
-    category_order INTEGER DEFAULT 0,               -- For UI ordering
+    category_name TEXT,
 
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 
 );
-INSERT INTO "asset_categories" VALUES(1,1,'Real Estate',1);
-INSERT INTO "asset_categories" VALUES(2,1,'Retirement Accounts',2);
-INSERT INTO "asset_categories" VALUES(3,1,'Investments',3);
-INSERT INTO "asset_categories" VALUES(4,2,'Tech Stocks',1);
-INSERT INTO "asset_categories" VALUES(5,2,'Crypto',2);
-INSERT INTO "asset_categories" VALUES(6,2,'Index Funds',3);
-INSERT INTO "asset_categories" VALUES(7,2,'Real Estate',4);
-INSERT INTO "asset_categories" VALUES(8,6,'International Real Estate',1);
-INSERT INTO "asset_categories" VALUES(9,6,'Global Equities',2);
-INSERT INTO "asset_categories" VALUES(10,6,'Cryptocurrency',3);
+
+CREATE TABLE liability_categories (
+
+    liability_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    plan_id INTEGER NOT NULL,
+
+    category_name TEXT,
+
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+
+);
+
+CREATE TABLE plans (
+
+    plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    household_id INTEGER NOT NULL,
+
+    plan_name TEXT,
+
+    reference_person INTEGER DEFAULT 1,
+
+    plan_creation_year INTEGER,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (household_id) REFERENCES households (household_id) ON DELETE CASCADE
+
+);
+
 CREATE TABLE assets (
 
     asset_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,149 +78,64 @@ CREATE TABLE assets (
 
     asset_category_id INTEGER NOT NULL,
 
-    asset_name TEXT NOT NULL,
+    asset_name TEXT,
 
-    owner TEXT NOT NULL,                           -- 'person1', 'person2', or 'joint'
+    owner TEXT,
 
-    value REAL NOT NULL,                          -- Current value
+    value REAL,
 
-    include_in_nest_egg INTEGER DEFAULT 1,        -- Include in retirement calculations
+    include_in_nest_egg INTEGER DEFAULT 1,
+
+    growth_control_type TEXT DEFAULT 'DEFAULT'
+
+        CHECK(growth_control_type IN ('DEFAULT', 'OVERRIDE', 'STEPWISE')),
 
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
 
     FOREIGN KEY (asset_category_id) REFERENCES asset_categories (asset_category_id) ON DELETE CASCADE
 
 );
-INSERT INTO "assets" VALUES(1,1,1,'Primary Residence','joint',750000.0,0);
-INSERT INTO "assets" VALUES(2,1,2,'401(k)','person1',500000.0,1);
-INSERT INTO "assets" VALUES(3,1,2,'IRA','person2',350000.0,1);
-INSERT INTO "assets" VALUES(4,1,3,'Stock Portfolio','joint',250000.0,1);
-INSERT INTO "assets" VALUES(5,2,4,'Tech Portfolio','person1',300000.0,1);
-INSERT INTO "assets" VALUES(6,2,5,'Bitcoin Holdings','person1',150000.0,1);
-INSERT INTO "assets" VALUES(7,2,6,'Total Market ETF','person1',500000.0,1);
+
 CREATE TABLE base_assumptions (
 
     plan_id INTEGER PRIMARY KEY,
 
-    retirement_age_1 INTEGER,                       -- Age-based: "Retire at 65"
+    retirement_age_1 INTEGER,
 
-    retirement_age_2 INTEGER,                       -- Age-based: "Retire at 65"
+    retirement_age_2 INTEGER,
 
-    final_age_1 INTEGER,                           -- Age-based: "Plan until 95"
+    final_age_1 INTEGER,
 
-    final_age_2 INTEGER,                           -- Age-based: "Plan until 95"
+    final_age_2 INTEGER,
 
-    final_age_selector INTEGER,                     -- Which person's final age to use (1 or 2)
-
-    default_growth_rate REAL,                      -- Annual growth rate (e.g., 0.05 for 5%)
-
-    inflation_rate REAL,                           -- Annual inflation rate (e.g., 0.03 for 3%)
+    inflation_rate REAL,
 
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 
 );
-INSERT INTO "base_assumptions" VALUES(1,65,67,95,95,1,0.06,0.028);
-INSERT INTO "base_assumptions" VALUES(2,45,NULL,90,NULL,1,0.07,0.03);
-INSERT INTO "base_assumptions" VALUES(3,65,65,90,95,2,0.05,0.029);
-INSERT INTO "base_assumptions" VALUES(4,62,65,92,92,1,0.055,0.026);
-INSERT INTO "base_assumptions" VALUES(5,62,65,92,92,1,0.055,0.026);
-INSERT INTO "base_assumptions" VALUES(6,58,60,95,95,1,0.065,0.031);
-CREATE TABLE growth_rate_configurations (
 
-    growth_rate_id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    asset_id INTEGER,                               -- Optional: if configuring asset growth
-
-    retirement_income_plan_id INTEGER,              -- Optional: if configuring income growth
-
-    scenario_id INTEGER,                            -- Optional: if scenario-specific
-
-    configuration_type TEXT NOT NULL,               -- 'DEFAULT', 'OVERRIDE', or 'STEPWISE'
-
-    start_year INTEGER NOT NULL,                    -- Year-based: Market projections by year
-
-    end_year INTEGER,                               -- Year-based: Market projections by year
-
-    growth_rate REAL NOT NULL,                      -- Annual rate
-
-    
-
-    FOREIGN KEY (asset_id)
-
-        REFERENCES assets (asset_id) ON DELETE CASCADE,
-
-    FOREIGN KEY (retirement_income_plan_id)
-
-        REFERENCES retirement_income_plans (income_plan_id) ON DELETE CASCADE,
-
-    FOREIGN KEY (scenario_id)
-
-        REFERENCES scenarios (scenario_id) ON DELETE CASCADE
-
-);
-INSERT INTO "growth_rate_configurations" VALUES(1,2,NULL,NULL,'OVERRIDE',2024,NULL,0.07);
-INSERT INTO "growth_rate_configurations" VALUES(2,3,NULL,NULL,'OVERRIDE',2024,NULL,0.065);
-INSERT INTO "growth_rate_configurations" VALUES(3,4,NULL,NULL,'STEPWISE',2024,2026,0.08);
-INSERT INTO "growth_rate_configurations" VALUES(4,4,NULL,NULL,'STEPWISE',2027,2030,0.06);
-INSERT INTO "growth_rate_configurations" VALUES(5,5,NULL,NULL,'STEPWISE',2024,2025,0.15);
-INSERT INTO "growth_rate_configurations" VALUES(6,5,NULL,NULL,'STEPWISE',2026,2027,0.1);
-CREATE TABLE households (
-
-    household_id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    household_name TEXT NOT NULL,
-
-    person1_first_name TEXT NOT NULL,
-
-    person1_last_name TEXT NOT NULL,
-
-    person1_dob DATE NOT NULL,                      -- Full date for precise calculations
-
-    person2_first_name TEXT,
-
-    person2_last_name TEXT,
-
-    person2_dob DATE,                               -- Full date for precise calculations
-
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-
-);
-INSERT INTO "households" VALUES(1,'Test Household A','John','Smith','1970-05-15','Jane','Smith','1972-08-23','2025-01-28 05:52:00','2025-01-28 05:52:00');
-INSERT INTO "households" VALUES(2,'Test Household B','Sarah','Johnson','1985-03-20',NULL,NULL,NULL,'2025-01-28 05:52:46','2025-01-28 05:52:46');
-INSERT INTO "households" VALUES(3,'Test Household C','Robert','Miller','1960-08-10','Emma','Miller','1980-12-15','2025-01-28 05:58:02','2025-01-28 05:58:02');
-INSERT INTO "households" VALUES(4,'Test Household D','Michael','Anderson','1965-11-22','Lisa','Anderson','1966-03-15','2025-01-28 06:13:37','2025-01-28 06:13:37');
-INSERT INTO "households" VALUES(5,'Test Household E','David','Wilson','1975-04-30','Maria','Wilson','1978-09-12','2025-01-28 06:14:35','2025-01-28 06:14:35');
 CREATE TABLE inflows_outflows (
 
     inflow_outflow_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     plan_id INTEGER NOT NULL,
 
-    type TEXT NOT NULL,                           -- 'inflow' or 'outflow'
+    type TEXT,
 
-    name TEXT NOT NULL,
+    name TEXT,
 
-    owner TEXT NOT NULL,                          -- 'person1', 'person2', or 'joint'
+    annual_amount REAL,
 
-    annual_amount REAL NOT NULL,
+    start_year INTEGER,
 
-    start_year INTEGER NOT NULL,                  -- Year-based: "Inheritance in 2025"
+    end_year INTEGER,
 
-    end_year INTEGER,                             -- Year-based: "Until 2030"
-
-    apply_inflation INTEGER DEFAULT 0,            -- Should amount inflate over time?
+    apply_inflation INTEGER DEFAULT 0,
 
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 
 );
-INSERT INTO "inflows_outflows" VALUES(1,1,'inflow','Salary Person 1','person1',120000.0,2024,2029,1);
-INSERT INTO "inflows_outflows" VALUES(2,1,'inflow','Salary Person 2','person2',95000.0,2024,2031,1);
-INSERT INTO "inflows_outflows" VALUES(3,1,'outflow','Property Tax','joint',8500.0,2024,NULL,1);
-INSERT INTO "inflows_outflows" VALUES(4,2,'inflow','Tech Job Salary','person1',180000.0,2024,2030,1);
-INSERT INTO "inflows_outflows" VALUES(5,2,'inflow','Rental Income','person1',36000.0,2024,NULL,1);
-INSERT INTO "inflows_outflows" VALUES(6,2,'inflow','Side Consulting','person1',25000.0,2024,2026,0);
+
 CREATE TABLE liabilities (
 
     liability_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -181,65 +144,20 @@ CREATE TABLE liabilities (
 
     liability_category_id INTEGER NOT NULL,
 
-    liability_name TEXT NOT NULL,
+    liability_name TEXT,
 
-    owner TEXT NOT NULL,                           -- 'person1', 'person2', or 'joint'
+    owner TEXT,
 
-    value REAL NOT NULL,                          -- Current value
+    value REAL,
 
-    interest_rate REAL,                           -- Annual interest rate
+    interest_rate REAL,
 
-    include_in_nest_egg INTEGER DEFAULT 1,        -- Include in retirement calculations
-
-    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
-
-    FOREIGN KEY (liability_category_id) REFERENCES liability_categories (liability_category_id) ON DELETE CASCADE
-
-);
-INSERT INTO "liabilities" VALUES(1,1,1,'Home Mortgage','joint',450000.0,0.0375,1);
-INSERT INTO "liabilities" VALUES(2,1,2,'Car Loan','person1',35000.0,0.0425,1);
-INSERT INTO "liabilities" VALUES(3,2,3,'Rental Property Mortgage','person1',300000.0,0.0425,1);
-INSERT INTO "liabilities" VALUES(4,2,4,'Investment Line of Credit','person1',50000.0,0.065,1);
-CREATE TABLE liability_categories (
-
-    liability_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    plan_id INTEGER NOT NULL,
-
-    category_name TEXT NOT NULL,
-
-    category_order INTEGER DEFAULT 0,               -- For UI ordering
+    include_in_nest_egg INTEGER DEFAULT 1,
 
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 
 );
-INSERT INTO "liability_categories" VALUES(1,1,'Mortgages',1);
-INSERT INTO "liability_categories" VALUES(2,1,'Personal Loans',2);
-INSERT INTO "liability_categories" VALUES(3,2,'Investment Property Loans',1);
-INSERT INTO "liability_categories" VALUES(4,2,'Credit Lines',2);
-INSERT INTO "liability_categories" VALUES(5,6,'International Mortgages',1);
-INSERT INTO "liability_categories" VALUES(6,6,'Business Loans',2);
-CREATE TABLE plans (
 
-    plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    household_id INTEGER NOT NULL,
-
-    plan_name TEXT NOT NULL,
-
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP, reference_person INTEGER NOT NULL DEFAULT 1, plan_creation_year INTEGER,
-
-    FOREIGN KEY (household_id) REFERENCES households (household_id) ON DELETE CASCADE
-
-);
-INSERT INTO "plans" VALUES(1,1,'Base Retirement Plan','2025-01-28 05:52:00','2025-01-28 05:52:00',1,NULL);
-INSERT INTO "plans" VALUES(2,2,'FIRE Strategy Plan','2025-01-28 05:52:46','2025-01-28 05:52:46',1,NULL);
-INSERT INTO "plans" VALUES(3,2,'FIRE Strategy Plan','2025-01-28 05:53:31','2025-01-28 05:53:31',1,NULL);
-INSERT INTO "plans" VALUES(4,3,'Staggered Retirement Plan','2025-01-28 05:58:02','2025-01-28 05:58:02',1,NULL);
-INSERT INTO "plans" VALUES(5,4,'Pension Optimization Plan','2025-01-28 06:13:37','2025-01-28 06:13:37',1,NULL);
-INSERT INTO "plans" VALUES(6,5,'International Retirement Plan','2025-01-28 06:14:35','2025-01-28 06:14:35',1,NULL);
 CREATE TABLE retirement_income_plans (
 
     income_plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -248,148 +166,434 @@ CREATE TABLE retirement_income_plans (
 
     name TEXT NOT NULL,
 
-    owner TEXT NOT NULL,                          -- 'person1', 'person2', or 'joint'
+    owner TEXT NOT NULL,
 
     annual_income REAL NOT NULL,
 
-    start_age INTEGER NOT NULL,                   -- Age-based: "Social Security at 67"
+    start_age INTEGER NOT NULL,
 
-    end_age INTEGER,                              -- Age-based: "Pension until 85"
+    end_age INTEGER,
 
-    include_in_nest_egg INTEGER DEFAULT 1,        -- Include in retirement calculations
+    apply_inflation INTEGER DEFAULT 0,
+
+    include_in_nest_egg INTEGER DEFAULT 1,
 
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 
 );
-INSERT INTO "retirement_income_plans" VALUES(1,1,'Social Security','person1',32000.0,67,NULL,1);
-INSERT INTO "retirement_income_plans" VALUES(2,1,'Pension','person2',45000.0,65,NULL,1);
-INSERT INTO "retirement_income_plans" VALUES(3,2,'Social Security','person1',28000.0,67,NULL,1);
-INSERT INTO "retirement_income_plans" VALUES(4,2,'Rental Income Stream','person1',36000.0,45,NULL,1);
-INSERT INTO "retirement_income_plans" VALUES(5,5,'Corporate Pension','person1',65000.0,62,NULL,1);
-INSERT INTO "retirement_income_plans" VALUES(6,5,'State Pension','person2',42000.0,65,NULL,1);
+
+CREATE TABLE asset_growth_rate_configurations (
+
+    asset_growth_rate_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    asset_id INTEGER NOT NULL,
+
+    start_year INTEGER NOT NULL,
+
+    end_year INTEGER NOT NULL,
+
+    growth_rate REAL NOT NULL,
+
+    FOREIGN KEY (asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE
+
+);
+
+CREATE TABLE scenario_assets (
+
+    scenario_asset_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    scenario_id INTEGER NOT NULL,
+
+    original_asset_id INTEGER,
+
+    value REAL,
+
+    include_in_nest_egg INTEGER DEFAULT 1,
+
+    growth_control_type TEXT DEFAULT 'DEFAULT' 
+
+        CHECK(growth_control_type IN ('DEFAULT', 'OVERRIDE', 'STEPWISE')),
+
+    exclude_from_projection INTEGER DEFAULT 0,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE,
+
+    FOREIGN KEY (original_asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE
+
+);
+
 CREATE TABLE scenario_assumptions (
 
     scenario_id INTEGER PRIMARY KEY,
 
-    retirement_age_1 INTEGER,                       -- Age-based: Retirement planning is age-focused
+    retirement_age_1 INTEGER,
 
-    retirement_age_2 INTEGER,                       -- Age-based: Retirement planning is age-focused
+    retirement_age_2 INTEGER,
 
-    default_growth_rate REAL,                      -- Annual rate
+    default_growth_rate REAL,  -- Default rate used when stepwise is OFF
 
-    inflation_rate REAL,                           -- Annual rate
+    growth_rate_type TEXT NOT NULL DEFAULT 'fixed'
 
-    annual_retirement_spending REAL,                -- Amount
+        CHECK(growth_rate_type IN ('fixed', 'stepwise')),
+
+    inflation_rate REAL,
+
+    annual_retirement_spending REAL,
 
     FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
 
 );
-INSERT INTO "scenario_assumptions" VALUES(1,60,62,0.055,0.03,85000.0);
-INSERT INTO "scenario_assumptions" VALUES(2,67,69,0.045,0.025,75000.0);
-INSERT INTO "scenario_assumptions" VALUES(3,43,NULL,0.08,0.032,100000.0);
-INSERT INTO "scenario_assumptions" VALUES(4,47,NULL,0.05,0.028,80000.0);
-INSERT INTO "scenario_assumptions" VALUES(5,45,NULL,0.065,0.03,90000.0);
-CREATE TABLE scenario_overrides (
 
-    override_id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE scenario_growth_rate_configurations (
+
+    scenario_growth_rate_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     scenario_id INTEGER NOT NULL,
 
-    asset_id INTEGER,                               -- Optional: if overriding an asset
+    start_year INTEGER NOT NULL,
 
-    liability_id INTEGER,                           -- Optional: if overriding a liability
+    end_year INTEGER NOT NULL,
 
-    inflow_outflow_id INTEGER,                      -- Optional: if overriding a cash flow
+    growth_rate REAL NOT NULL,
 
-    retirement_income_plan_id INTEGER,              -- Optional: if overriding retirement income
-
-    override_field TEXT NOT NULL,                   -- Field being overridden
-
-    override_value TEXT NOT NULL,                   -- New value (matches source table's format)
-
-    
-
-    FOREIGN KEY (scenario_id) 
-
-        REFERENCES scenarios (scenario_id) ON DELETE CASCADE,
-
-    FOREIGN KEY (asset_id) 
-
-        REFERENCES assets (asset_id) ON DELETE CASCADE,
-
-    FOREIGN KEY (liability_id) 
-
-        REFERENCES liabilities (liability_id) ON DELETE CASCADE,
-
-    FOREIGN KEY (inflow_outflow_id) 
-
-        REFERENCES inflows_outflows (inflow_outflow_id) ON DELETE CASCADE,
-
-    FOREIGN KEY (retirement_income_plan_id)
-
-        REFERENCES retirement_income_plans (income_plan_id) ON DELETE CASCADE
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
 
 );
-INSERT INTO "scenario_overrides" VALUES(1,1,2,NULL,NULL,NULL,'value','600000');
-INSERT INTO "scenario_overrides" VALUES(2,2,4,NULL,NULL,NULL,'remove','TRUE');
-INSERT INTO "scenario_overrides" VALUES(3,3,5,NULL,NULL,NULL,'value','400000');
-INSERT INTO "scenario_overrides" VALUES(4,3,6,NULL,NULL,NULL,'remove','TRUE');
-INSERT INTO "scenario_overrides" VALUES(5,4,5,NULL,NULL,NULL,'value','200000');
+
+CREATE TABLE scenario_inflows_outflows (
+
+    scenario_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    scenario_id INTEGER NOT NULL,
+
+    original_inflow_outflow_id INTEGER,
+
+    type TEXT NOT NULL,
+
+    annual_amount REAL NOT NULL,
+
+    start_year INTEGER NOT NULL,
+
+    end_year INTEGER,
+
+    apply_inflation INTEGER DEFAULT 0,
+
+    exclude_from_projection INTEGER DEFAULT 0,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE,
+
+    FOREIGN KEY (original_inflow_outflow_id) REFERENCES inflows_outflows (inflow_outflow_id) ON DELETE CASCADE
+
+);
+
+CREATE TABLE scenario_liabilities (
+
+    scenario_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    scenario_id INTEGER NOT NULL,
+
+    original_liability_id INTEGER,
+
+    value REAL NOT NULL,
+
+    interest_rate REAL,
+
+    include_in_nest_egg INTEGER DEFAULT 1,
+
+    exclude_from_projection INTEGER DEFAULT 0,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE,
+
+    FOREIGN KEY (original_liability_id) REFERENCES liabilities (liability_id) ON DELETE CASCADE
+
+);
+
+CREATE TABLE scenario_retirement_income (
+
+    scenario_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    scenario_id INTEGER NOT NULL,
+
+    original_income_plan_id INTEGER,
+
+    annual_income REAL NOT NULL,
+
+    start_age INTEGER NOT NULL,
+
+    end_age INTEGER,
+
+    apply_inflation INTEGER DEFAULT 0,
+
+    include_in_nest_egg INTEGER DEFAULT 1,
+
+    growth_control_type TEXT DEFAULT 'DEFAULT'
+
+        CHECK(growth_control_type IN ('DEFAULT', 'OVERRIDE', 'STEPWISE')),
+
+    exclude_from_projection INTEGER DEFAULT 0,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE,
+
+    FOREIGN KEY (original_income_plan_id) REFERENCES retirement_income_plans (income_plan_id) ON DELETE CASCADE
+
+);
+
 CREATE TABLE scenarios (
 
     scenario_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     plan_id INTEGER NOT NULL,
 
-    scenario_name TEXT NOT NULL,
+    scenario_name TEXT,
 
-    scenario_color TEXT,                            -- For UI visualization
+    scenario_color TEXT,
 
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 
 );
-INSERT INTO "scenarios" VALUES(1,1,'Early Retirement','#FF5733','2025-01-28 05:52:00');
-INSERT INTO "scenarios" VALUES(2,1,'Conservative Growth','#33FF57','2025-01-28 05:52:00');
-INSERT INTO "scenarios" VALUES(3,2,'Ultra Aggressive','#FF0000','2025-01-28 05:52:46');
-INSERT INTO "scenarios" VALUES(4,2,'Market Correction','#0000FF','2025-01-28 05:52:46');
-INSERT INTO "scenarios" VALUES(5,2,'Balanced Approach','#00FF00','2025-01-28 05:52:46');
-INSERT INTO "scenarios" VALUES(6,5,'Early Pension Take','#4B0082','2025-01-28 06:13:37');
-INSERT INTO "scenarios" VALUES(7,5,'Delayed Social Security','#800000','2025-01-28 06:13:37');
-INSERT INTO "scenarios" VALUES(8,5,'Hybrid Approach','#006400','2025-01-28 06:13:37');
-CREATE INDEX idx_households_name ON households (household_name);
-CREATE INDEX idx_plans_household_id ON plans (household_id);
-CREATE INDEX idx_scenarios_plan_id ON scenarios (plan_id);
-CREATE INDEX idx_scenario_overrides_scenario_id ON scenario_overrides (scenario_id);
-CREATE INDEX idx_scenario_overrides_asset_id ON scenario_overrides (asset_id);
-CREATE INDEX idx_scenario_overrides_liability_id ON scenario_overrides (liability_id);
-CREATE INDEX idx_scenario_overrides_inflow_outflow_id ON scenario_overrides (inflow_outflow_id);
-CREATE INDEX idx_scenario_overrides_rip_id ON scenario_overrides (retirement_income_plan_id);
+
+CREATE TABLE nest_egg_yearly_values (
+
+    nest_egg_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    plan_id INTEGER NOT NULL,
+
+    scenario_id INTEGER,  -- NULL if base projection
+
+    year INTEGER NOT NULL,
+
+    nest_egg_balance REAL NOT NULL,
+
+    withdrawals REAL NOT NULL DEFAULT 0,
+
+    contributions REAL NOT NULL DEFAULT 0,
+
+    investment_growth REAL NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
+
+    FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
+
+);
+
+CREATE VIEW asset_final_growth_rates AS
+
+SELECT 
+
+    asset_id,
+
+    start_year,
+
+    end_year,
+
+    growth_rate
+
+FROM asset_growth_rate_configurations;
+
+CREATE VIEW scenario_final_assets AS
+
+SELECT 
+
+    COALESCE(sa.scenario_asset_id, a.asset_id) AS asset_id,
+
+    sa.scenario_id,
+
+    COALESCE(sa.value, a.value) AS value,
+
+    COALESCE(sa.include_in_nest_egg, a.include_in_nest_egg) AS include_in_nest_egg,
+
+    COALESCE(sa.growth_control_type, a.growth_control_type) AS growth_control_type
+
+FROM assets a
+
+LEFT JOIN scenario_assets sa 
+
+    ON a.asset_id = sa.original_asset_id 
+
+    AND sa.scenario_id IS NOT NULL
+
+WHERE sa.exclude_from_projection = 0 OR sa.exclude_from_projection IS NULL;
+
+CREATE VIEW scenario_final_assumptions AS
+
+SELECT 
+
+    sa.scenario_id,
+
+    COALESCE(sa.retirement_age_1, ba.retirement_age_1) AS retirement_age_1,
+
+    COALESCE(sa.retirement_age_2, ba.retirement_age_2) AS retirement_age_2,
+
+    COALESCE(sa.default_growth_rate, 6.0) AS default_growth_rate,
+
+    sa.growth_rate_type,
+
+    COALESCE(sa.inflation_rate, ba.inflation_rate) AS inflation_rate,
+
+    sa.annual_retirement_spending
+
+FROM base_assumptions ba
+
+LEFT JOIN scenario_assumptions sa 
+
+    ON ba.plan_id = sa.scenario_id;
+
+CREATE VIEW scenario_final_growth_rates AS
+
+SELECT 
+
+    scenario_id,
+
+    start_year,
+
+    end_year,
+
+    growth_rate
+
+FROM scenario_growth_rate_configurations;
+
+CREATE VIEW scenario_final_inflows_outflows AS
+
+SELECT 
+
+    COALESCE(sio.scenario_item_id, io.inflow_outflow_id) AS inflow_outflow_id,
+
+    sio.scenario_id,
+
+    COALESCE(sio.type, io.type) AS type,
+
+    COALESCE(sio.annual_amount, io.annual_amount) AS annual_amount,
+
+    COALESCE(sio.start_year, io.start_year) AS start_year,
+
+    COALESCE(sio.end_year, io.end_year) AS end_year,
+
+    COALESCE(sio.apply_inflation, io.apply_inflation) AS apply_inflation
+
+FROM inflows_outflows io
+
+LEFT JOIN scenario_inflows_outflows sio 
+
+    ON io.inflow_outflow_id = sio.original_inflow_outflow_id 
+
+    AND sio.scenario_id IS NOT NULL
+
+WHERE sio.exclude_from_projection = 0 OR sio.exclude_from_projection IS NULL;
+
+CREATE VIEW scenario_final_liabilities AS
+
+SELECT 
+
+    COALESCE(sl.scenario_item_id, l.liability_id) AS liability_id,
+
+    sl.scenario_id,
+
+    COALESCE(sl.value, l.value) AS value,
+
+    COALESCE(sl.interest_rate, l.interest_rate) AS interest_rate,
+
+    COALESCE(sl.include_in_nest_egg, l.include_in_nest_egg) AS include_in_nest_egg
+
+FROM liabilities l
+
+LEFT JOIN scenario_liabilities sl 
+
+    ON l.liability_id = sl.original_liability_id 
+
+    AND sl.scenario_id IS NOT NULL
+
+WHERE sl.exclude_from_projection = 0 OR sl.exclude_from_projection IS NULL;
+
+CREATE VIEW scenario_final_retirement_income AS
+
+SELECT 
+
+    COALESCE(sri.scenario_item_id, rip.income_plan_id) AS income_plan_id,
+
+    sri.scenario_id,
+
+    COALESCE(sri.annual_income, rip.annual_income) AS annual_income,
+
+    COALESCE(sri.start_age, rip.start_age) AS start_age,
+
+    COALESCE(sri.end_age, rip.end_age) AS end_age,
+
+    COALESCE(sri.apply_inflation, rip.apply_inflation) AS apply_inflation,
+
+    COALESCE(sri.include_in_nest_egg, rip.include_in_nest_egg) AS include_in_nest_egg,
+
+    COALESCE(sri.growth_control_type, 'DEFAULT') AS growth_control_type
+
+FROM retirement_income_plans rip
+
+LEFT JOIN scenario_retirement_income sri 
+
+    ON rip.income_plan_id = sri.original_income_plan_id 
+
+    AND sri.scenario_id IS NOT NULL
+
+WHERE sri.exclude_from_projection = 0 OR sri.exclude_from_projection IS NULL;
+
 CREATE INDEX idx_asset_categories_plan_id ON asset_categories (plan_id);
-CREATE INDEX idx_assets_plan_id ON assets (plan_id);
+
+CREATE INDEX idx_asset_growth_configurations ON asset_growth_rate_configurations (asset_id, start_year, end_year);
+
 CREATE INDEX idx_assets_category_id ON assets (asset_category_id);
-CREATE INDEX idx_liability_categories_plan_id ON liability_categories (plan_id);
-CREATE INDEX idx_liabilities_plan_id ON liabilities (plan_id);
-CREATE INDEX idx_liabilities_category_id ON liabilities (liability_category_id);
+
+CREATE INDEX idx_assets_nest_egg ON assets (include_in_nest_egg);
+
+CREATE INDEX idx_assets_plan_id ON assets (plan_id);
+
 CREATE INDEX idx_inflows_outflows_plan_id ON inflows_outflows (plan_id);
-CREATE INDEX idx_inflows_outflows_type ON inflows_outflows (type);
+
 CREATE INDEX idx_inflows_outflows_years ON inflows_outflows (start_year, end_year);
+
+CREATE INDEX idx_liabilities_category_id ON liabilities (liability_category_id);
+
+CREATE INDEX idx_liabilities_plan_id ON liabilities (plan_id);
+
+CREATE INDEX idx_liability_categories_plan_id ON liability_categories (plan_id);
+
+CREATE INDEX idx_nest_egg_yearly_values 
+
+ON nest_egg_yearly_values (plan_id, scenario_id, year);
+
+CREATE INDEX idx_plans_household_id ON plans (household_id);
+
+CREATE INDEX idx_retirement_income_plans_ages ON retirement_income_plans (start_age, end_age);
+
 CREATE INDEX idx_retirement_income_plans_plan_id ON retirement_income_plans (plan_id);
-CREATE INDEX idx_growth_rate_configurations_asset_id ON growth_rate_configurations (asset_id);
-CREATE INDEX idx_growth_rate_configurations_rip_id ON growth_rate_configurations (retirement_income_plan_id);
-CREATE INDEX idx_growth_rate_configurations_scenario_id ON growth_rate_configurations (scenario_id);
-CREATE INDEX idx_growth_rate_configurations_years ON growth_rate_configurations (start_year, end_year);
-DELETE FROM "sqlite_sequence";
-INSERT INTO "sqlite_sequence" VALUES('households',5);
-INSERT INTO "sqlite_sequence" VALUES('plans',6);
-INSERT INTO "sqlite_sequence" VALUES('scenarios',8);
-INSERT INTO "sqlite_sequence" VALUES('asset_categories',10);
-INSERT INTO "sqlite_sequence" VALUES('inflows_outflows',6);
-INSERT INTO "sqlite_sequence" VALUES('retirement_income_plans',6);
-INSERT INTO "sqlite_sequence" VALUES('assets',7);
-INSERT INTO "sqlite_sequence" VALUES('liability_categories',6);
-INSERT INTO "sqlite_sequence" VALUES('liabilities',4);
-INSERT INTO "sqlite_sequence" VALUES('growth_rate_configurations',6);
-INSERT INTO "sqlite_sequence" VALUES('scenario_overrides',5);
-COMMIT;
+
+CREATE INDEX idx_scenario_assets_original_asset_id ON scenario_assets (original_asset_id);
+
+CREATE INDEX idx_scenario_assets_scenario_id ON scenario_assets (scenario_id);
+
+CREATE INDEX idx_scenario_assumptions_scenario_id ON scenario_assumptions (scenario_id);
+
+CREATE INDEX "idx_scenario_growth_rate_configs" ON "scenario_growth_rate_configurations" (
+	"scenario_id",
+	"start_year",
+	"end_year",
+	"growth_rate"
+);
+
+CREATE INDEX idx_scenario_inflows_outflows_original_id ON scenario_inflows_outflows (original_inflow_outflow_id);
+
+CREATE INDEX idx_scenario_inflows_outflows_scenario_id ON scenario_inflows_outflows (scenario_id);
+
+CREATE INDEX idx_scenario_liabilities_original_liability_id ON scenario_liabilities (original_liability_id);
+
+CREATE INDEX idx_scenario_liabilities_scenario_id ON scenario_liabilities (scenario_id);
+
+CREATE INDEX idx_scenarios_plan_id ON scenarios (plan_id);
+
