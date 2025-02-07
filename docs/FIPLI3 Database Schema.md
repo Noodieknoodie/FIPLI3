@@ -47,9 +47,9 @@ CREATE TABLE plans (
 
 CREATE TABLE base_assumptions (
     plan_id INTEGER PRIMARY KEY,  -- One per plan, serving as a reference for all scenarios
-    nest_egg_growth_rate REAL DEFAULT 6.0,  -- Default investment growth rate (unless overridden)
-    inflation_rate REAL NOT NULL,  -- Assumed inflation rate (affects projections)
-    annual_retirement_spending REAL DEFAULT 0,  -- Expected spending during retirement
+    nest_egg_growth_rate DECIMAL(5,2) DEFAULT 6.0,
+	inflation_rate DECIMAL(5,2) NOT NULL,
+	annual_retirement_spending DECIMAL(12,2) DEFAULT 0,
     FOREIGN KEY (plan_id) REFERENCES plans(plan_id) ON DELETE CASCADE
 );
 
@@ -69,9 +69,9 @@ CREATE TABLE assets (
     plan_id INTEGER NOT NULL,
     asset_category_id INTEGER NOT NULL,
     asset_name TEXT NOT NULL,  -- Name of the asset (e.g., "401(k)", "Primary Home")
-    value REAL NOT NULL,  -- Initial asset value
+    value DECIMAL(12,2) NOT NULL,  -- Initial asset value
     include_in_nest_egg INTEGER DEFAULT 1,  -- Whether this asset is included in retirement projections
-    independent_growth_rate REAL NULL,  -- If set, this asset uses its own growth rate instead of the default nest egg rate
+    independent_growth_rate DECIMAL(5,2) NULL,  -- If set, this asset uses its own growth rate instead of the default nest egg rate
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (asset_category_id) REFERENCES asset_categories (asset_category_id) ON DELETE CASCADE
 );
@@ -94,7 +94,7 @@ CREATE TABLE asset_growth_adjustments (
     asset_id INTEGER NOT NULL,  -- The asset receiving a temporary growth rate change
     start_year INTEGER NOT NULL,  -- First year the override applies
     end_year INTEGER NOT NULL,  -- Last year the override applies
-    growth_rate REAL NOT NULL,  -- Custom growth rate applied during this period
+    growth_rate DECIMAL(5,2) NOT NULL,  -- Custom growth rate applied during this period
     FOREIGN KEY (asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE
     -- Querying growth rate: 
     -- - If an asset has a matching record for a given year range, use `growth_rate` from this table.
@@ -114,8 +114,8 @@ CREATE TABLE liabilities (
     plan_id INTEGER NOT NULL,
     liability_category_id INTEGER NOT NULL,
     liability_name TEXT NOT NULL,  -- Example: "Primary Home Mortgage", "Car Loan"
-    value REAL NOT NULL,  -- Current outstanding balance
-    interest_rate REAL NOT NULL,  -- Annual interest rate applied to this liability
+    value DECIMAL(12,2) NOT NULL,  -- Current outstanding balance
+    interest_rate DECIMAL(5,2) NOT NULL,  -- Annual interest rate applied to this liability
     include_in_nest_egg INTEGER DEFAULT 1,
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (liability_category_id) REFERENCES liability_categories (liability_category_id) ON DELETE CASCADE
@@ -130,7 +130,7 @@ CREATE TABLE inflows_outflows (
     plan_id INTEGER NOT NULL,
     type TEXT NOT NULL,  -- 'INFLOW' (income, asset sales) or 'OUTFLOW' (expenses, purchases)
     name TEXT NOT NULL,  -- Description (e.g., "Car Purchase", "Rental Income")
-    annual_amount REAL NOT NULL,  -- Fixed annual amount (subject to inflation if enabled)
+    annual_amount DECIMAL(12,2) NOT NULL,  -- Fixed annual amount (subject to inflation if enabled)
     start_year INTEGER NOT NULL,  -- Year when this inflow/outflow starts
     end_year INTEGER NOT NULL,  -- Year when this inflow/outflow ends
     apply_inflation INTEGER DEFAULT 0,  -- If 1, amount grows with inflation assumptions
@@ -141,8 +141,9 @@ CREATE TABLE inflows_outflows (
 CREATE TABLE retirement_income_plans (
     income_plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
     plan_id INTEGER NOT NULL,
+	person_id INTEGER NOT NULL,
     name TEXT NOT NULL,  -- Description (e.g., "Social Security", "Company Pension")
-    annual_income REAL NOT NULL,  -- Fixed annual payout (adjusted for inflation if enabled)
+    annual_income DECIMAL(12,2) NOT NULL,  -- Fixed annual payout (adjusted for inflation if enabled)
     start_age INTEGER NOT NULL,  -- Age when the person starts receiving this income
     end_age INTEGER,  -- Age when payments stop (NULL means lifetime benefit)
     apply_inflation INTEGER DEFAULT 0,  -- If 1, annual_income increases with inflation
@@ -178,13 +179,13 @@ CREATE TABLE scenario_assumptions (
     plan_id INTEGER NOT NULL,
 
     overrides_nest_egg_growth_rate INTEGER DEFAULT 0,  -- 1 if overridden
-    nest_egg_growth_rate REAL NULL,  
+    nest_egg_growth_rate DECIMAL(5,2) NULL,  
 
     overrides_inflation_rate INTEGER DEFAULT 0,  
-    inflation_rate REAL NULL,
+    inflation_rate DECIMAL(5,2) NULL,
 
     overrides_annual_retirement_spending INTEGER DEFAULT 0,  
-    annual_retirement_spending REAL NULL,
+    annual_retirement_spending DECIMAL(12,2) NULL,
 
     FOREIGN KEY (scenario_id) REFERENCES scenarios(scenario_id) ON DELETE CASCADE,
     FOREIGN KEY (plan_id) REFERENCES plans(plan_id) ON DELETE CASCADE
@@ -196,7 +197,7 @@ CREATE TABLE scenario_growth_adjustments (
     scenario_id INTEGER NOT NULL,
     start_year INTEGER NOT NULL,  -- Year adjustment begins
     end_year INTEGER NOT NULL,  -- Year adjustment ends
-    growth_rate REAL NOT NULL,  -- New temporary growth rate for this period
+    growth_rate DECIMAL(5,2) NOT NULL,  -- New temporary growth rate for this period
     FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
 	UNIQUE(scenario_id, start_year)  -- Prevents multiple adjustments for the same year in a scenario
 );
@@ -208,10 +209,10 @@ CREATE TABLE scenario_assets (
     original_asset_id INTEGER NOT NULL,
 
     overrides_value INTEGER DEFAULT 0,  -- 1 if overridden
-    value REAL NULL,  
+    value DECIMAL(12,2) NULL, 
 
     overrides_independent_growth_rate INTEGER DEFAULT 0,
-    independent_growth_rate REAL NULL,  
+    independent_growth_rate DECIMAL(5,2) NULL,  
 
     include_in_nest_egg INTEGER DEFAULT 1,  -- If 1, asset remains in projections
     exclude_from_projection INTEGER DEFAULT 0,  -- If 1, asset is ignored in this scenario
@@ -227,7 +228,7 @@ CREATE TABLE scenario_inflows_outflows (
     original_inflow_outflow_id INTEGER NOT NULL,
 
     overrides_annual_amount INTEGER DEFAULT 0,  -- 1 if annual amount is overridden
-    annual_amount REAL NULL,
+    annual_amount DECIMAL(12,2) NULL,
 
     overrides_start_year INTEGER DEFAULT 0,  -- 1 if start year is overridden
     start_year INTEGER NULL,
@@ -249,10 +250,10 @@ CREATE TABLE scenario_liabilities (
     original_liability_id INTEGER NOT NULL,
 
     overrides_value INTEGER DEFAULT 0,  -- 1 if overridden
-    value REAL NULL,  
+    value DECIMAL(12,2) NULL,
 
     overrides_interest_rate INTEGER DEFAULT 0,  -- 1 if overridden
-    interest_rate REAL NULL,
+    interest_rate DECIMAL(5,2) NULL,
 
     include_in_nest_egg INTEGER DEFAULT 1,  -- If 1, liability remains in projections
     exclude_from_projection INTEGER DEFAULT 0,  -- If 1, liability is ignored in this scenario
@@ -268,7 +269,7 @@ CREATE TABLE scenario_retirement_income (
     original_income_plan_id INTEGER NOT NULL,
 
     overrides_annual_income INTEGER DEFAULT 0,  -- 1 if overridden
-    annual_income REAL NULL,
+    annual_income DECIMAL(12,2) NULL,
 
     overrides_start_age INTEGER DEFAULT 0,  -- 1 if overridden
     start_age INTEGER NULL,
@@ -290,12 +291,12 @@ CREATE TABLE nest_egg_yearly_values (
     plan_id INTEGER NOT NULL,
     scenario_id INTEGER,  -- NULL for base projection, set for scenario-specific projections
     year INTEGER NOT NULL,  -- Year of projection
-    nest_egg_balance REAL NOT NULL,  -- Total assets in the retirement fund
-    withdrawals REAL NULL,  -- Amount withdrawn this year
-    contributions REAL NULL,  -- Amount contributed this year
-    investment_growth REAL NULL,  -- Investment gains/losses for the year
-    surplus REAL DEFAULT 0,  -- Surplus cash flow reinvested into the nest egg
-    surplus_contributions REAL DEFAULT 0,  -- New surplus added this year
+    nest_egg_balance DECIMAL(12,2) NOT NULL,
+	withdrawals DECIMAL(12,2) NULL,
+	contributions DECIMAL(12,2) NULL,
+	investment_growth DECIMAL(12,2) NULL,
+	surplus DECIMAL(12,2) DEFAULT 0,
+	surplus_contributions DECIMAL(12,2) DEFAULT 0,
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
 );
@@ -445,3 +446,19 @@ ON inflows_outflows(plan_id, start_year, end_year);
 
 CREATE INDEX idx_retirement_income_timeline 
 ON retirement_income_plans(plan_id, start_age, end_age);
+
+
+-- Core Tables
+CREATE INDEX idx_people_household ON people(household_id);  
+
+-- Asset/Liability Ownership
+CREATE INDEX idx_asset_owners_person ON asset_owners(person_id);  
+CREATE INDEX idx_retirement_income_owners_person ON retirement_income_owners(person_id);
+
+-- Scenario Optimization
+CREATE INDEX idx_scenario_assets_original ON scenario_assets(original_asset_id);
+CREATE INDEX idx_scenario_liabilities_original ON scenario_liabilities(original_liability_id);
+
+-- for fast time-series lookups
+CREATE INDEX idx_nest_egg_projection 
+ON nest_egg_yearly_values(plan_id, scenario_id, year);
