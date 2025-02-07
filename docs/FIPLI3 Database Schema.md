@@ -15,26 +15,34 @@ Core concepts:
 CREATE TABLE households (
     household_id INTEGER PRIMARY KEY AUTOINCREMENT,
     household_name TEXT,
-    person1_first_name TEXT,
-    person1_last_name TEXT,
-    person1_dob DATE,
-    person2_first_name TEXT,
-    person2_last_name TEXT,
-    person2_dob DATE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE plans (
-    plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    household_id INTEGER NOT NULL,
-    plan_name TEXT,
-    reference_person INTEGER DEFAULT 1,  -- Determines which person's age is used for timing calculations
-    plan_creation_year INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (household_id) REFERENCES households (household_id) ON DELETE CASCADE
+CREATE TABLE people (
+    person_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    household_id INTEGER,
+    first_name TEXT,
+    last_name TEXT,
+    dob DATE,
+    FOREIGN KEY (household_id) REFERENCES households(household_id) ON DELETE CASCADE
 );
+
+
+
+CREATE TABLE plans (
+    plan_id INTEGER PRIMARY KEY AUTOINCREMENT,  -- Unique identifier for the financial plan
+    household_id INTEGER NOT NULL,  -- Household associated with this plan
+    plan_name TEXT NOT NULL,  -- Name of the financial plan
+    reference_person_id INTEGER,  -- Person whose details anchor projections (e.g., retirement start)
+    plan_creation_year INTEGER NOT NULL,  -- Year the plan was created, serving as a fixed reference point for projections
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Timestamp when the plan was created
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Timestamp when the plan was last updated
+    FOREIGN KEY (household_id) REFERENCES households (household_id) ON DELETE CASCADE,
+    FOREIGN KEY (reference_person_id) REFERENCES people (person_id) ON DELETE SET NULL  -- Allows the plan to persist if reference person is removed
+);
+
+
 
 CREATE TABLE asset_categories (
     asset_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,17 +58,23 @@ CREATE TABLE liability_categories (
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE base_assumptions (
-    plan_id INTEGER PRIMARY KEY,
-    retirement_age_1 INTEGER,
-    retirement_age_2 INTEGER,
-    nest_egg_growth_rate REAL DEFAULT 6.0,  -- Base growth rate for all nest egg assets unless independently configured
-    final_age_1 INTEGER,
-    final_age_2 INTEGER,
-    inflation_rate REAL,
-    annual_retirement_spending REAL DEFAULT 0,
-    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+    plan_id INTEGER PRIMARY KEY,  -- Tied to a specific financial plan
+    person_1_id INTEGER,  -- First person in the household
+    person_2_id INTEGER,  -- Second person in the household (nullable for single-person households)
+    retirement_age_1 INTEGER,  -- Retirement age for person 1
+    retirement_age_2 INTEGER,  -- Retirement age for person 2
+    nest_egg_growth_rate REAL DEFAULT 6.0,  -- Default growth rate for assets unless overridden
+    final_age_1 INTEGER,  -- final age person 1
+    final_age_2 INTEGER,  -- final age person 2
+    inflation_rate REAL,  -- Inflation rate 
+    annual_retirement_spending REAL DEFAULT 0,  -- annual spending in retirement
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
+    FOREIGN KEY (person_1_id) REFERENCES people (person_id) ON DELETE CASCADE,
+    FOREIGN KEY (person_2_id) REFERENCES people (person_id) ON DELETE SET NULL  -- Allows for single-person plans
 );
+
 
 CREATE TABLE assets (
     asset_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,6 +96,7 @@ CREATE TABLE asset_growth_adjustments (
     growth_rate REAL NOT NULL,  -- Temporarily overrides regular growth rate during specified years
     FOREIGN KEY (asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE
 );
+
 
 CREATE TABLE inflows_outflows (
     inflow_outflow_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,6 +122,7 @@ CREATE TABLE liabilities (
     FOREIGN KEY (liability_category_id) REFERENCES liability_categories (liability_category_id) ON DELETE CASCADE
 );
 
+-- this table operates essentially the exact same as 'type INFLOW' within inflows_outflows but separated so that social security / pensions / defined benifits. etc. incomes can be tracked separately from other general inflows. additionally, this table uses start_age and end_age as opposed to start_year and end_year as seen in inflows_outflows. However, python handles all years and ages the same. 
 CREATE TABLE retirement_income_plans (
     income_plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
     plan_id INTEGER NOT NULL,
@@ -188,6 +204,7 @@ CREATE TABLE scenario_liabilities (
     FOREIGN KEY (original_liability_id) REFERENCES liabilities (liability_id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE scenario_retirement_income (
     scenario_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
     scenario_id INTEGER NOT NULL,
@@ -212,9 +229,11 @@ CREATE TABLE nest_egg_yearly_values (
     contributions REAL NULL,
     investment_growth REAL NULL,
     surplus REAL DEFAULT 0,  -- Surplus cash flow reinvested into the nest egg
+    surplus_contributions REAL DEFAULT 0,  -- Tracks new surplus added this year
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
 );
+
 
 -- Views ----------------------------------------------------------------------
 
