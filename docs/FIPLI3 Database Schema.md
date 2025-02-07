@@ -211,6 +211,7 @@ CREATE TABLE nest_egg_yearly_values (
     withdrawals REAL NULL,
     contributions REAL NULL,
     investment_growth REAL NULL,
+    surplus REAL DEFAULT 0,  -- Surplus cash flow reinvested into the nest egg
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id) ON DELETE CASCADE
 );
@@ -294,7 +295,8 @@ CREATE INDEX idx_plans_household ON plans(household_id);
 CREATE INDEX idx_scenarios_plan ON scenarios(plan_id);
 
 -- Timeline optimization indexes
-CREATE INDEX idx_nest_egg_lookup ON nest_egg_yearly_values(plan_id, scenario_id, year);
+CREATE INDEX idx_nest_egg_lookup 
+ON nest_egg_yearly_values(plan_id, scenario_id, year, surplus);
 CREATE INDEX idx_growth_adjustments ON scenario_growth_adjustments(scenario_id, start_year, end_year);
 CREATE INDEX idx_asset_growth_adjustments ON asset_growth_adjustments(asset_id, start_year, end_year);
 
