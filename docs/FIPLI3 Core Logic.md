@@ -1,74 +1,93 @@
-
-
 # CORE_LOGIC.md
 
 # Overview
-FIPLI operates on structured, deterministic financial projections with strict annual tracking. The system processes user-defined assets, liabilities, cash flows, and spending to compute an evolving nest egg balance. All calculations follow a sequential, rules-based approach.
+FIPLI is a financial planning system that enables comparison of multiple growth scenarios against base financial facts. The core purpose is to visualize how different growth rates and assumptions affect long-term nest egg values through structured, deterministic projections.
 
 # Time Handling
-- DOB → Plan Creation Year: Determines the absolute year start.
-- Years ↔ Age Conversion: Dynamically derived where needed.
-- Annual Periods Only: No intra-year processing.
-- Fixed Timeline Across Scenarios: Ensures consistency for comparisons.
+- Reference Person: Determines which household member's age drives timing calculations
+- Plan Creation Year: Establishes the starting point for all projections
+- Annual Periods Only: All calculations occur on a yearly basis
+- Fixed Timeline: Scenarios maintain consistency with base plan timeline for valid comparisons
 
-# Base Facts Aggregation
-- Default Growth Rate: Plan-wide assumption.
-- Inflation Rate: Global or asset-specific adjustment.
-- Retirement Year & End Year: Governs projection duration.
-- Asset Categories: Groupings for organization, not calculations.
+# Base Facts Structure
+- Household Details: Basic demographic information for up to two people
+- Plans: Container for all financial inputs and assumptions
+- Asset Categories: Organizational grouping of assets
+- Base Assumptions: Core parameters including retirement ages and inflation
 
-# Asset Growth Models
-- Default Growth Rate: Uses plan-wide assumption if no overrides.
-- Override Growth Rate: Asset-specific rate replacing the default.
-- Stepwise Growth Rate: Time-segmented growth with fallback logic.
-- Inflation Toggle: Adjusts based on global or asset-level inflation.
+# Growth Rate System
+Three distinct mechanisms for controlling asset growth:
+1. Nest Egg Growth Rate
+   - Default rate applied to all included assets
+   - Configurable at both base and scenario levels
+   - Primary tool for scenario comparison
 
-# Liability Handling
-- Fixed Value Liabilities: No interest accrual.
-- Interest-Based Liabilities: Compounded annually.
-- Scheduled Repayments: Reduce liability balance over time.
+2. Independent Growth Rate
+   - Asset-specific rate that opts out of nest egg growth
+   - Remains constant unless modified by adjustments
+   - Available in both base facts and scenarios
 
-# Scheduled Inflows & Outflows
-- Inflows: User-defined sources (salary, rental, other income).
-- Outflows: User-defined expenses (loans, lifestyle costs).
-- Inflation Adjustment: Applied if enabled per entry.
-- Time-Based Execution: Adjusted annually within projection range.
-- Net Cash Flow Calculation: Total inflows minus total outflows.
+3. Growth Adjustments
+   - Time-bound growth rate modifications
+   - Can be applied to individual assets or entire scenarios
+   - Override normal growth rates during specified years
+   - Return to default rates after adjustment period
 
-# Retirement Income Processing
-- Fixed or Inflation-Adjusted Payouts.
-- Start & End Years Based on User Input.
-- Integrated Directly into Annual Cash Flow Calculation.
+# Asset Management
+- Include/Exclude from Nest Egg: Controls participation in projections
+- Value: Base amount subject to growth calculations
+- Growth Control: Multiple options for customizing growth behavior
+- Categories: Organizational grouping without computational impact
 
-# Retirement Spending Logic
-- Scenario-Specific Parameter: Does not exist in base facts.
-- Applied as Annual Nest Egg Withdrawal.
-- Inflation-Adjusted Over Time.
-- Sustainable Spending Model: Determines safe withdrawal rate.
-
-# Nest Egg Projection Sequence
-1. Retrieve prior year-end nest egg balance.
-2. Apply scheduled inflows and outflows.
-3. Add retirement income.
-4. Deduct retirement spending (scenarios only).
-5. Compute asset growth per the selected model.
-6. Deduct liability interest and repayments.
-7. Compute final year-end balance.
+# Cash Flow Components
+- Inflows/Outflows: Scheduled annual amounts
+- Retirement Income: Age-based income streams
+- Liabilities: Tracked separately with individual interest rates
+- Optional Inflation Adjustment: Available for all cash flows
 
 # Scenario System
-- Base Plan Cloning: Scenarios start with inherited values.
-- Targeted Overrides: Modify specific parameters without affecting the base.
-- Consistent Timeline: Ensures valid comparisons.
-- Adjustments Apply in Real Time: Directly impact projection output.
+- Inherits Base Facts: Starting point for all scenarios
+- Selective Override: Modify only desired values
+- Delta Storage: Maintains only changed values
+- Real-time Updates: Changes to base facts cascade to scenarios
 
-# Validation Rules
-- Enforce Logical Chronology: Start year < retirement year < end year.
-- Stepwise Growth Periods Must Be Sequential & Non-Overlapping.
-- No Negative Nest Egg Values: Prevents unrealistic projections.
-- Ensure Cash Flow Consistency: Inflows and outflows correctly applied.
-- Liability Interest Calculations Must Match Expected Accrual.
+# Nest Egg Calculation Sequence
+1. Start with previous year's balance
+2. Apply scenario-specific growth rate
+3. Process any growth adjustments
+4. Add inflows and retirement income
+5. Subtract outflows and retirement spending
+6. Store yearly values for visualization
 
-# Projection Output
-- Structured Annual Nest Egg Values.
-- Scenario Comparisons Maintain Fixed Timeline.
-- Visualization-Ready Format.
+# Optimization Features
+- Max Spend Analysis: Calculates optimal retirement spending
+- Growth Rate Comparison: Visualizes multiple growth scenarios
+- Timeline Consistency: Ensures valid scenario comparisons
+
+# Data Storage Strategy
+- Base Facts: Complete financial picture
+- Scenario Deltas: Store only modified values
+- Yearly Values: Cache calculated results for performance
+- Views: Combine base and scenario data efficiently
+
+# Validation Requirements
+1. Timeline Integrity
+   - Valid retirement ages
+   - Consistent scenario timelines
+   - Sequential growth adjustments
+
+2. Financial Logic
+   - Non-negative values where appropriate
+   - Valid growth rate ranges
+   - Proper inflation application
+
+3. Data Relationships
+   - Scenario references to base facts
+   - Category assignments
+   - Plan ownership
+
+# Output and Visualization
+- Yearly nest egg values
+- Multiple scenario overlay
+- Growth comparison charts
+- Contribution/withdrawal tracking
