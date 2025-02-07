@@ -4,11 +4,41 @@
 FIPLI is a financial planning system that enables comparison of multiple growth scenarios against base financial facts. The system processes user-defined assets, liabilities, cash flows, and spending to compute an evolving nest egg balance. All calculations follow a sequential, rules-based approach.
 
 # Time Handling
-- Reference Person: Determines which household member's age drives timing calculations
-- Plan Creation Year: Establishes the starting point for all projections
-- Annual Periods Only: No intra-year processing
-- Fixed Timeline Across Scenarios: Ensures consistency for comparisons
 
+## Storage Philosophy
+- Store native values in database (DOBs, specific years, ages) exactly as users input them
+- Calculate temporal relationships at runtime rather than storing derived values
+- All stored dates/ages/years can be mapped to any other temporal reference point
+
+## Timeline Fundamentals
+- Plan starts at creation_date with partial first year
+- Each person's DOB establishes their age progression
+- Reference person's final_age determines end of projection timeline
+- Example mapping: Year 2030 = Reference Person Age 45 = Spouse Age 47
+
+## Temporal Calculations
+First Year:
+- Pro-rate all values (growth, income, expenses) from creation_date to December 31st
+- Example: Plan created March 2024 uses 9/12 of annual amounts for 2024
+
+Subsequent Years:
+- Full calendar years (January 1st to December 31st)
+- Ages increment January 1st
+- All calendar years map to specific ages for both household members
+
+## Reference Person Controls
+- User-selected reference person determines:
+  - Timeline end point via their final_age
+  - Retirement trigger point for household spending
+  - All timing calculations must resolve to both calendar years and ages for either person
+
+## Scenario Consistency
+- All scenarios inherit same temporal framework
+- All timing points (retirement, income events, etc.) must be translatable between:
+  - Calendar years (e.g., 2030)
+  - Reference person age (e.g., 45)
+  - Spouse age (e.g., 47)
+  - 
 # Base Facts Structure
 - Household Details: Basic demographic information for up to two people
 - Plans: Container for all financial inputs and assumptions
