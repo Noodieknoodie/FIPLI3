@@ -40,7 +40,7 @@ This document defines the structured development workflow for building FIPLI usi
 ## 4. Data Validation & Constraint Enforcement
 1. Ensure reference_person timing consistency.
 2. Enforce chronological ordering of growth adjustment periods.
-3. Prevent negative nest egg values.
+3. negative nest egg value is OKAY
 4. Validate liability interest calculations and accrual accuracy.
 5. Validate cash flow consistency (inflows and outflows applied correctly).
 6. Ensure scenario modifications correctly adjust projections.
