@@ -44,21 +44,6 @@ CREATE TABLE plans (
 
 
 
-CREATE TABLE asset_categories (
-    asset_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    plan_id INTEGER NOT NULL,
-    category_name TEXT,
-    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
-);
-
-CREATE TABLE liability_categories (
-    liability_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    plan_id INTEGER NOT NULL,
-    category_name TEXT,
-    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
-);
-
-
 CREATE TABLE base_assumptions (
     plan_id INTEGER PRIMARY KEY,  -- Tied to a specific financial plan
     person_1_id INTEGER,  -- First person in the household
@@ -76,39 +61,57 @@ CREATE TABLE base_assumptions (
 );
 
 
+-- ASSETS & LIABILITIES ---------
+
+-- Purely categorical table for organizing assets by type within a plan.
+CREATE TABLE asset_categories ( 
+    asset_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    category_name TEXT,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+);
+
+
 CREATE TABLE assets (
     asset_id INTEGER PRIMARY KEY AUTOINCREMENT,
     plan_id INTEGER NOT NULL,
     asset_category_id INTEGER NOT NULL,
     asset_name TEXT,
     value REAL,
-    include_in_nest_egg INTEGER DEFAULT 1,
-    independent_growth_rate REAL NULL,  -- If set, asset grows at this rate instead of nest egg rate
+    include_in_nest_egg INTEGER DEFAULT 1, -
+    independent_growth_rate REAL NULL,  -- If set, asset grows at this rate instead of default nest egg GR
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (asset_category_id) REFERENCES asset_categories (asset_category_id) ON DELETE CASCADE
 );
 
+CREATE TABLE asset_owners (
+    asset_id INTEGER NOT NULL,
+    person_id INTEGER NOT NULL,
+    PRIMARY KEY (asset_id, person_id),
+    FOREIGN KEY (asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE,
+    FOREIGN KEY (person_id) REFERENCES people (person_id) ON DELETE CASCADE
+    -- Backend: When querying ownership, group by asset_id; if multiple person_ids exist, treat it as joint ownership in application logic.
+);
+
+
+-- Temporarily overrides an asset’s growth rate for a defined period. 
+-- Reverts to the default rate after the end_year.
 CREATE TABLE asset_growth_adjustments (
     adjustment_id INTEGER PRIMARY KEY AUTOINCREMENT,
     asset_id INTEGER NOT NULL,
     start_year INTEGER NOT NULL,
     end_year INTEGER NOT NULL,
-    growth_rate REAL NOT NULL,  -- Temporarily overrides regular growth rate during specified years
+    growth_rate REAL NOT NULL,  
     FOREIGN KEY (asset_id) REFERENCES assets (asset_id) ON DELETE CASCADE
 );
 
-
-CREATE TABLE inflows_outflows (
-    inflow_outflow_id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE liability_categories (
+    liability_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
     plan_id INTEGER NOT NULL,
-    type TEXT,  -- 'INFLOW' or 'OUTFLOW'
-    name TEXT,
-    annual_amount REAL,
-    start_year INTEGER,
-    end_year INTEGER,
-    apply_inflation INTEGER DEFAULT 0,
+    category_name TEXT,
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 );
+
 
 CREATE TABLE liabilities (
     liability_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,7 +125,25 @@ CREATE TABLE liabilities (
     FOREIGN KEY (liability_category_id) REFERENCES liability_categories (liability_category_id) ON DELETE CASCADE
 );
 
--- this table operates essentially the exact same as 'type INFLOW' within inflows_outflows but separated so that social security / pensions / defined benifits. etc. incomes can be tracked separately from other general inflows. additionally, this table uses start_age and end_age as opposed to start_year and end_year as seen in inflows_outflows. However, python handles all years and ages the same. 
+
+-- CASHFLOWS ------------
+
+
+-- Defines scheduled inflows and outflows for testing financial scenarios. Allows users to model events like future home purchases, asset sales, inheritances, and other planned changes.
+CREATE TABLE inflows_outflows (
+    inflow_outflow_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    type TEXT,  -- 'INFLOW' or 'OUTFLOW'
+    name TEXT,
+    annual_amount REAL,
+    start_year INTEGER,
+    end_year INTEGER,
+    apply_inflation INTEGER DEFAULT 0,
+    FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
+);
+
+
+-- Functions like 'INFLOW' in inflows_outflows but specifically for Social Security, pensions, and defined benefits. Uses start_age and end_age instead of start_year and end_year for timing, but Python treats them the same.
 CREATE TABLE retirement_income_plans (
     income_plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
     plan_id INTEGER NOT NULL,
@@ -134,6 +155,17 @@ CREATE TABLE retirement_income_plans (
     include_in_nest_egg INTEGER DEFAULT 1,
     FOREIGN KEY (plan_id) REFERENCES plans (plan_id) ON DELETE CASCADE
 );
+
+
+-- Defines ownership of retirement income sources. Allows individual or joint ownership by referencing the people table.
+CREATE TABLE retirement_income_owners (
+    income_plan_id INTEGER NOT NULL,
+    person_id INTEGER NOT NULL,
+    PRIMARY KEY (income_plan_id, person_id),
+    FOREIGN KEY (income_plan_id) REFERENCES retirement_income_plans (income_plan_id) ON DELETE CASCADE,
+    FOREIGN KEY (person_id) REFERENCES people (person_id) ON DELETE CASCADE
+);
+
 
 -- Scenario Tables -------------------------------------------------------------
 
