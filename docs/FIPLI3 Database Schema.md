@@ -44,7 +44,6 @@ CREATE TABLE plans (
     plan_name TEXT NOT NULL,
     reference_person_id INTEGER NOT NULL,
     plan_creation_year INTEGER NOT NULL,
-    status TEXT CHECK (status IN ('active', 'archived', 'draft')) DEFAULT 'draft',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (household_id) REFERENCES households(household_id) ON DELETE CASCADE,
@@ -212,7 +211,6 @@ CREATE TABLE scenarios (
     scenario_id INTEGER PRIMARY KEY AUTOINCREMENT,
     plan_id INTEGER NOT NULL,
     scenario_name TEXT NOT NULL,  -- Name of the scenario (e.g., "Early Retirement", "Market Crash")
-    status TEXT CHECK (status IN ('active', 'archived', 'draft')) DEFAULT 'draft',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (plan_id) REFERENCES plans(plan_id) ON DELETE CASCADE
@@ -334,18 +332,27 @@ CREATE TABLE scenario_retirement_income (
 CREATE TABLE nest_egg_yearly_values (
     nest_egg_id INTEGER PRIMARY KEY AUTOINCREMENT,
     plan_id INTEGER NOT NULL,
-    scenario_id INTEGER,  -- NULL for base projection, set for scenario-specific projections
-    year INTEGER NOT NULL,  -- Year of projection
-    nest_egg_balance DECIMAL(19,4) NOT NULL,  -- Total assets in the retirement fund
-    withdrawals DECIMAL(19,4) NULL,  -- Amount withdrawn this year
-    contributions DECIMAL(19,4) NULL,  -- Amount contributed this year
-    investment_growth DECIMAL(19,4) NULL,  -- Investment gains/losses for the year
-    surplus DECIMAL(19,4) DEFAULT 0,  -- Surplus cash flow reinvested into the nest egg
-    surplus_contributions DECIMAL(19,4) DEFAULT 0,  -- New surplus added this year
+    scenario_id INTEGER,
+    year INTEGER NOT NULL,
+    
+    -- Core balance tracking
+    nest_egg_balance DECIMAL(19,4) NOT NULL,      -- Total balance for this year
+    final_year_balance DECIMAL(19,4),             -- Projected balance at end of plan
+    
+    -- Detailed surplus tracking
+    prior_year_surplus DECIMAL(19,4) DEFAULT 0,   -- Last year's leftover
+    surplus_growth DECIMAL(19,4) DEFAULT 0,       -- Growth on prior surplus
+    new_surplus DECIMAL(19,4) DEFAULT 0,          -- This year's additional surplus
+    final_year_surplus DECIMAL(19,4),             -- Projected surplus at end of plan
+    
+    -- Component tracking (keeping these from original)
+    withdrawals DECIMAL(19,4) NULL,
+    contributions DECIMAL(19,4) NULL,
+    investment_growth DECIMAL(19,4) NULL,
+    
     FOREIGN KEY (plan_id) REFERENCES plans(plan_id) ON DELETE CASCADE,
     FOREIGN KEY (scenario_id) REFERENCES scenarios(scenario_id) ON DELETE CASCADE
 );
-
 
 
 -- Views ----------------------------------------------------------------------
@@ -461,7 +468,25 @@ JOIN scenario_effective_retirement_info sri ON sri.scenario_id = s.scenario_id
 JOIN plans p ON p.plan_id = s.plan_id
 WHERE sea.exclude_from_projection = 0;
 
-
+-- Add a view to make final year lookups easy
+CREATE VIEW scenario_final_positions AS
+SELECT 
+    n.scenario_id,
+    n.plan_id,
+    n.year as final_year,
+    n.nest_egg_balance as final_balance,
+    n.prior_year_surplus,
+    n.surplus_growth,
+    n.new_surplus,
+    n.final_year_surplus,
+    -- Calculate total surplus (might be useful)
+    (n.prior_year_surplus + n.surplus_growth + n.new_surplus) as total_surplus
+FROM nest_egg_yearly_values n
+WHERE n.year = (
+    SELECT MAX(year) 
+    FROM nest_egg_yearly_values n2 
+    WHERE n2.scenario_id = n.scenario_id
+);
 -- Indexes --------------------------------------------------------------------
 
 -- Core relationship indexes
@@ -532,3 +557,4 @@ CREATE INDEX idx_retirement_income_owners_lookup
 ON retirement_income_owners(income_plan_id, person_id);
 
 
+CREATE INDEX idx_nest_egg_final_year ON nest_egg_yearly_values(plan_id, scenario_id, year DESC);
