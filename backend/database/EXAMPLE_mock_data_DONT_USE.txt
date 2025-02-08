@@ -1,0 +1,401 @@
+# THE MOCK DATA IS IN THE DB FILE LOCATED: backend\database\FIPLI.db
+## THE INFORMATION BELOW IS FOR YOU TO SEE WHATS INSIDE OF THE DATABASE, IT IS NOT FOR YOU TO USE IN YOUR CODE.
+
+
+==== Table: assets ====
+asset_id|plan_id|asset_category_id|asset_name|value|include_in_nest_egg|independent_growth_rate
+1|1|1|Joint Investment Account|800000|1|
+2|1|1|John's Individual Account|500000|1|8.0
+3|1|1|Jane's Individual Account|400000|0|
+4|1|2|John's IRA|350000|1|
+5|1|2|John's 401K|600000|1|7.5
+6|1|2|Jane's 403B|450000|1|
+7|1|3|Primary Home|700000|1|9.0
+8|2|1|Joint Investment Account|825000|1|
+9|2|1|John's Individual Account|515000|1|7.8
+10|2|2|John's IRA|365000|1|
+11|2|2|John's 401K|625000|1|7.8
+12|2|3|Primary Home|750000|0|9.0
+13|2|3|Hawaii Condo|300000|0|
+14|2|4|Charitable Remainder Trust|100000|0|3.0
+15|2|4|Cash|45000|1|
+16|1|6|Private Equity Investment|500000|1|15.0
+
+
+==== Table: asset_categories ====
+asset_category_id|household_id|category_name
+1|1|Non-Qualified
+2|1|Qualified
+3|1|Real Estate
+4|1|Tax-Free
+5|1|Business Interests
+6|1|Alternative Investments
+7|1|Insurance Products
+
+
+==== Table: asset_growth_adjustments ====
+adjustment_id|asset_id|start_year|end_year|growth_rate
+1|3|2025|2029|10
+2|3|2037|2052|3
+3|6|2026|2030|9
+4|6|2035|2050|4
+5|13|2026|2040|6
+6|13|2041|2050|12
+7|2|2025|2030|12
+8|2|2031|2040|6
+9|6|2026|2035|10
+10|6|2036|2050|5
+
+
+==== Table: asset_owners ====
+asset_id|person_id
+1|1
+1|2
+7|1
+7|2
+2|1
+3|2
+4|1
+5|1
+6|2
+8|1
+8|2
+12|1
+12|2
+13|1
+13|2
+14|1
+14|2
+15|1
+15|2
+9|1
+10|1
+11|1
+16|1
+16|2
+
+
+==== Table: base_assumptions ====
+plan_id|nest_egg_growth_rate|inflation_rate|annual_retirement_spending
+1|5.0|2.5|85000
+2|4.2|3.0|100000
+
+
+==== Table: combined_growth_adjustments ====
+scenario_id|asset_id|effective_growth_rate|adjustment_start_year|adjustment_end_year
+1|1|7.5|2025|2030
+1|1|5.5|2031|2035
+1|2|7.5|2025|2030
+1|2|7.5|2025|2030
+1|2|5.5|2031|2035
+1|2|5.5|2031|2035
+1|3|7.5|2025|2030
+1|3|7.5|2025|2030
+1|3|5.5|2031|2035
+1|3|5.5|2031|2035
+1|4|7.5|2025|2030
+1|4|5.5|2031|2035
+1|5|7.5|2025|2030
+1|5|5.5|2031|2035
+1|6|7.5|2025|2030
+1|6|7.5|2025|2030
+1|6|7.5|2025|2030
+1|6|7.5|2025|2030
+1|6|5.5|2031|2035
+1|6|5.5|2031|2035
+1|6|5.5|2031|2035
+1|6|5.5|2031|2035
+1|16|7.5|2025|2030
+1|16|5.5|2031|2035
+2|4|4.5|2025|2030
+2|4|3.5|2031|2040
+2|4|3.0|2041|2050
+2|2|4.5|2025|2030
+2|2|4.5|2025|2030
+2|2|3.5|2031|2040
+2|2|3.5|2031|2040
+2|2|3.0|2041|2050
+2|2|3.0|2041|2050
+2|3|4.5|2025|2030
+2|3|4.5|2025|2030
+2|3|3.5|2031|2040
+2|3|3.5|2031|2040
+2|3|3.0|2041|2050
+2|3|3.0|2041|2050
+2|4|4.5|2025|2030
+2|4|3.5|2031|2040
+2|4|3.0|2041|2050
+2|5|4.5|2025|2030
+2|5|3.5|2031|2040
+2|5|3.0|2041|2050
+2|6|4.5|2025|2030
+2|6|4.5|2025|2030
+2|6|4.5|2025|2030
+2|6|4.5|2025|2030
+2|6|3.5|2031|2040
+2|6|3.5|2031|2040
+2|6|3.5|2031|2040
+2|6|3.5|2031|2040
+2|6|3.0|2041|2050
+2|6|3.0|2041|2050
+2|6|3.0|2041|2050
+2|6|3.0|2041|2050
+2|7|4.5|2025|2030
+2|7|3.5|2031|2040
+2|7|3.0|2041|2050
+2|16|4.5|2025|2030
+2|16|3.5|2031|2040
+2|16|3.0|2041|2050
+3|1|9.5|2025|2028
+3|1|7.5|2029|2035
+3|1|8.5|2036|2040
+3|1|6.5|2041|2050
+3|8|9.5|2025|2028
+3|8|7.5|2029|2035
+3|8|8.5|2036|2040
+3|8|6.5|2041|2050
+3|3|9.5|2025|2028
+3|3|9.5|2025|2028
+3|3|7.5|2029|2035
+3|3|7.5|2029|2035
+3|3|8.5|2036|2040
+3|3|8.5|2036|2040
+3|3|6.5|2041|2050
+3|3|6.5|2041|2050
+3|4|9.5|2025|2028
+3|4|7.5|2029|2035
+3|4|8.5|2036|2040
+3|4|6.5|2041|2050
+3|5|9.5|2025|2028
+3|5|7.5|2029|2035
+3|5|8.5|2036|2040
+3|5|6.5|2041|2050
+3|6|9.5|2025|2028
+3|6|9.5|2025|2028
+3|6|9.5|2025|2028
+3|6|9.5|2025|2028
+3|6|7.5|2029|2035
+3|6|7.5|2029|2035
+3|6|7.5|2029|2035
+3|6|7.5|2029|2035
+3|6|8.5|2036|2040
+3|6|8.5|2036|2040
+3|6|8.5|2036|2040
+3|6|8.5|2036|2040
+3|6|6.5|2041|2050
+3|6|6.5|2041|2050
+3|6|6.5|2041|2050
+3|6|6.5|2041|2050
+3|7|9.5|2025|2028
+3|7|7.5|2029|2035
+3|7|8.5|2036|2040
+3|7|6.5|2041|2050
+3|7|9.5|2025|2028
+3|7|7.5|2029|2035
+3|7|8.5|2036|2040
+3|7|6.5|2041|2050
+
+
+==== Table: households ====
+household_id|household_name|created_at|updated_at
+1|Smith Family|2025-01-15 09:00:00|2025-01-15 09:00:00
+
+
+==== Table: inflows_outflows ====
+inflow_outflow_id|plan_id|type|name|annual_amount|start_year|end_year|apply_inflation
+1|1|INFLOW|Structured Settlement|10000|2026|2028|0
+2|1|INFLOW|Inheritance|800000|2038|2038|0
+3|1|INFLOW|Rental Income|24000|2028|2048|1
+4|1|OUTFLOW|Wedding|20000|2029|2029|0
+5|1|OUTFLOW|Child Support|30000|2025|2035|1
+6|1|OUTFLOW|Mom's Retirement Home|60000|2043|2047|1
+7|2|INFLOW|Structured Settlement|12000|2026|2028|0
+8|2|INFLOW|Inheritance|900000|2035|2035|0
+9|2|INFLOW|Rental Income|26000|2028|2045|1
+10|2|INFLOW|Business Sale|500000|2040|2040|0
+11|2|OUTFLOW|Wedding|25000|2029|2029|0
+12|2|OUTFLOW|Child Support|32000|2025|2035|1
+13|2|OUTFLOW|Mom's Retirement Home|65000|2043|2047|1
+14|2|OUTFLOW|Vacation Home Purchase|300000|2032|2032|0
+15|1|INFLOW|Consulting Work|40000|2026|2035|1
+16|1|INFLOW|Dividend Portfolio|30000|2025|2055|1
+
+
+==== Table: liabilities ====
+liability_id|plan_id|liability_category_id|liability_name|value|interest_rate|include_in_nest_egg
+1|1|1|Mortgage, Primary Home|300000|6.5|1
+2|1|1|Credit Card Balance|50000|11.0|0
+3|1|2|Business Loan|70000|4.0|1
+4|2|1|Mortgage, Primary Home|215000|6.5|1
+5|2|1|Credit Card Balance|15000|11.0|0
+6|2|2|Business Loan|15000|4.0|1
+7|2|2|Office Furniture|10000|7.0|0
+
+
+==== Table: liability_categories ====
+liability_category_id|household_id|category_name
+1|1|Personal
+2|1|Business
+3|1|Real Estate
+4|1|Education
+5|1|Tax Obligations
+
+
+==== Table: nest_egg_yearly_values ====
+nest_egg_id|plan_id|scenario_id|year|nest_egg_balance|final_year_balance|prior_year_surplus|surplus_growth|new_surplus|final_year_surplus|withdrawals|contributions|investment_growth
+
+
+==== Table: people ====
+person_id|household_id|first_name|last_name|dob|retirement_age|final_age
+1|1|John|Smith|1975-06-15|65|95
+2|1|Jane|Smith|1978-09-22|63|92
+
+
+==== Table: plans ====
+plan_id|household_id|plan_name|reference_person_id|plan_creation_year|created_at|updated_at
+1|1|Liquid Assets, RE Sale in 2040, SS Included, Max Spend to 95|1|2025|2025-01-15 10:00:00|2025-01-15 10:00:00
+2|1|Liquid Assets, No RE, No SS, Retire at 70, Max Spend to 100|2|2025|2025-01-15 11:00:00|2025-01-15 11:00:00
+
+
+==== Table: retirement_income_owners ====
+income_plan_id|person_id
+1|1
+2|2
+
+
+==== Table: retirement_income_plans ====
+income_plan_id|plan_id|name|annual_income|start_age|end_age|apply_inflation|include_in_nest_egg
+1|1|Social Security|36000|67||1|1
+2|1|Social Security|32000|65||1|1
+
+
+==== Table: scenarios ====
+scenario_id|plan_id|scenario_name|created_at|updated_at
+1|1|Early Retirement, Higher Growth, No Real Estate|2025-01-15 14:00:00|2025-01-15 14:00:00
+2|1|Delayed Retirement, Conservative Growth, Higher Spending|2025-01-15 15:00:00|2025-01-15 15:00:00
+3|1|Aggressive Investment, No Retirement Spending, High Passive Income|2025-01-15 16:00:00|2025-01-15 16:00:00
+
+
+==== Table: scenario_assets ====
+scenario_asset_id|scenario_id|original_asset_id|overrides_value|value|overrides_independent_growth_rate|independent_growth_rate|include_in_nest_egg|exclude_from_projection
+1|1|7|0||0||1|1
+2|1|2|0||1|9.0|1|0
+3|1|3|0||1|7.5|1|0
+4|2|1|1|850000.0|0||1|0
+5|2|5|0||1|6.0|1|0
+6|2|6|0||1|5.5|1|0
+7|3|16|0||1|15.0|1|0
+8|3|2|0||1||1|0
+
+
+==== Table: scenario_assumptions ====
+scenario_id|overrides_nest_egg_growth_rate|nest_egg_growth_rate|overrides_inflation_rate|inflation_rate|overrides_annual_retirement_spending|annual_retirement_spending
+1|1|6.5|1|2.0|1|85000
+2|1|4.0|1|3.0|1|100000
+3|1|8.0|1|2.5|1|0
+
+
+==== Table: scenario_effective_assets ====
+scenario_id|plan_id|asset_id|asset_name|asset_category_id|value|independent_growth_rate|exclude_from_projection|include_in_nest_egg
+1|1|1|Joint Investment Account|1|800000|||1
+1|1|2|John's Individual Account|1|500000|9.0|0.0|1
+1|1|3|Jane's Individual Account|1|400000|7.5|0.0|1
+1|1|4|John's IRA|2|350000|||1
+1|1|5|John's 401K|2|600000|7.5||1
+1|1|6|Jane's 403B|2|450000|||1
+1|1|16|Private Equity Investment|6|500000|15.0||1
+2|1|4|Joint Investment Account|1|850000||0.0|1
+2|1|2|John's Individual Account|1|500000|8.0||1
+2|1|3|Jane's Individual Account|1|400000|||0
+2|1|4|John's IRA|2|350000|||1
+2|1|5|John's 401K|2|600000|6.0|0.0|1
+2|1|6|Jane's 403B|2|450000|5.5|0.0|1
+2|1|7|Primary Home|3|700000|9.0||1
+2|1|16|Private Equity Investment|6|500000|15.0||1
+3|1|1|Joint Investment Account|1|800000|||1
+3|1|8|John's Individual Account|1|500000||0.0|1
+3|1|3|Jane's Individual Account|1|400000|||0
+3|1|4|John's IRA|2|350000|||1
+3|1|5|John's 401K|2|600000|7.5||1
+3|1|6|Jane's 403B|2|450000|||1
+3|1|7|Primary Home|3|700000|9.0||1
+3|1|7|Private Equity Investment|6|500000|15.0|0.0|1
+
+
+==== Table: scenario_effective_assumptions ====
+scenario_id|plan_id|nest_egg_growth_rate|inflation_rate|annual_retirement_spending
+1|1|6.5|2.0|85000
+2|1|4.0|3.0|100000
+3|1|8.0|2.5|0
+
+
+==== Table: scenario_effective_retirement_info ====
+scenario_id|plan_id|person_id|effective_retirement_age|effective_final_age
+1|1|1|60|95
+1|1|2|58|92
+2|1|1|70|95
+2|1|2|68|92
+3|1|1|65|95
+3|1|2|63|92
+
+
+==== Table: scenario_final_positions ====
+scenario_id|plan_id|final_year|final_balance|prior_year_surplus|surplus_growth|new_surplus|final_year_surplus|total_surplus
+
+
+==== Table: scenario_growth_adjustments ====
+adjustment_id|scenario_id|start_year|end_year|growth_rate
+1|1|2025|2030|7.5
+2|1|2031|2035|5.5
+3|2|2025|2030|4.5
+4|2|2031|2040|3.5
+5|2|2041|2050|3.0
+6|3|2025|2028|9.5
+7|3|2029|2035|7.5
+8|3|2036|2040|8.5
+9|3|2041|2050|6.5
+
+
+==== Table: scenario_inflows_outflows ====
+scenario_item_id|scenario_id|original_inflow_outflow_id|overrides_annual_amount|annual_amount|overrides_start_year|start_year|overrides_end_year|end_year|apply_inflation|exclude_from_projection
+1|1|3|0||0||0||0|1
+2|1|1|1|12000.0|0||1|2030.0|0|0
+3|2|15|0||0||0||0|0
+4|3|16|0||0||0||0|0
+5|3|3|1|30000.0|0||1|2055.0|0|0
+
+
+==== Table: scenario_liabilities ====
+scenario_item_id|scenario_id|original_liability_id|overrides_value|value|overrides_interest_rate|interest_rate|include_in_nest_egg|exclude_from_projection
+1|1|1|0||0||1|1
+2|2|1|1|250000.0|1|5.5|1|0
+3|3|3|0||0||1|1
+
+
+==== Table: scenario_person_overrides ====
+scenario_id|person_id|overrides_retirement_age|retirement_age|overrides_final_age|final_age
+1|1|1|60|0|
+1|2|1|58|0|
+2|1|1|70|0|
+2|2|1|68|0|
+3|1|1|65|0|
+3|2|1|63|0|
+
+
+===== Table: scenario_person_overrides =====
+scenario_id|person_id|overrides_retirement_age|retirement_age|overrides_final_age|final_age
+1|1|1|60|0|
+1|2|1|58|0|
+2|1|1|70|0|
+2|2|1|68|0|
+3|1|1|65|0|
+3|2|1|63|0|
+
+
+==== Table: scenario_retirement_income ====
+scenario_item_id|scenario_id|original_income_plan_id|overrides_annual_income|annual_income|overrides_start_age|start_age|overrides_end_age|end_age|apply_inflation|include_in_nest_egg|exclude_from_projection
+1|1|1|1|30000|1|62|0||0|1|0
+2|1|2|1|28000|1|60|0||0|1|0
+3|2|1|1|42000|1|70|0||0|1|0
+4|2|2|1|38000|1|68|0||0|1|0
+

@@ -1,3 +1,5 @@
+	# Time Value of Money Handling in FIPLI
+	
 	1.	Start with last year’s values – Nest egg balance, asset values, and surplus from the prior year.
 	2.	Apply growth to individual assets per hierarchy:
 	•	If asset-level stepwise period is active, apply that first.

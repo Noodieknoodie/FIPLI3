@@ -1,75 +1,147 @@
 # DEVELOPMENT_WORKFLOW.md
 
-# Overview
-This document defines the structured development workflow for building FIPLI using Cursor. It ensures that implementation follows the correct sequence, avoiding premature modularization and excessive abstraction. Cursor must strictly adhere to the defined execution order and leverage the provided database views for efficient data access.
+# Development Sequence
 
-# General Rules
-- No predefined file structure; files are generated as needed following the grouping rules below.
-- No excessive function separation unless a file exceeds 400 lines.
-- No unnecessary CRUD scaffolding before read operations are confirmed.
-- No test generation before database interactions and projections are validated.
+!!!! The database is POPULATED WITH COMPLETE MOCK DATA - TESTING SHOULD BE DONE WITH THIS DATA. !!!! 
 
-# Execution Order
+## 1. Data Foundation Layer
+Build this first - everything depends on solid data access.
 
-## 1. Database Integration
-1. Establish direct SQLite access using `sqlite3`.
-2. Utilize provided views for complex data relationships.
-3. Implement read queries first, ensuring correct relationships.
-4. Validate that all base facts, assets, liabilities, and scheduled cash flows are correctly retrieved.
-5. Implement controlled write operations only after read functions are confirmed.
+### Step 1: Basic View Integration
+1. Start with scenario_complete_state
+  - First just verify you can get a complete scenario state
+  - Don't worry about calculations yet
+  - Just confirm the data is combining correctly
 
-## 2. Core Projection Logic
-1. Retrieve base assumptions and establish time tracking using reference_person from Plans table.
-2. Process all assets flagged for nest egg inclusion.
-3. Apply three-tier growth rate system:
-   - Nest egg growth rate as primary driver
-   - Independent growth rates for specific assets
-   - Time-bound growth adjustments
-4. Process liabilities, applying interest accrual where applicable.
-5. Process scheduled inflows and outflows, adjusting for inflation if enabled.
-6. Process retirement income, applying adjustments as needed.
-7. Apply retirement spending per scenario settings.
-8. Store results in nest_egg_yearly_values table.
+2. Move to yearly_cashflow_components
+  - Pull basic yearly breakdowns
+  - Verify all cash flows appear
+  - Confirm timeline alignment
 
-## 3. Scenario Handling
-1. Leverage delta table structure for scenario management.
-2. Use provided views to combine base facts with scenario overrides.
-3. Ensure scenarios align with the base plan's fixed timeline.
-4. Validate that scenario comparisons remain structurally meaningful.
+3. Test scenario_final_positions
+  - Get end-state projections working
+  - Verify surplus tracking fields
+  - Check age/year mappings
 
-## 4. Data Validation & Constraint Enforcement
-1. Ensure reference_person timing consistency.
-2. Enforce chronological ordering of growth adjustment periods.
-3. negative nest egg value is OKAY
-4. Validate liability interest calculations and accrual accuracy.
-5. Validate cash flow consistency (inflows and outflows applied correctly).
-6. Ensure scenario modifications correctly adjust projections.
+### Step 2: Scenario System Foundation
+1. Create a basic scenario
+2. Verify override inheritance
+3. Modify some values
+4. Confirm changes appear in views
 
-## 5. Testing Strategy
-1. No tests before logic is validated using real seeded database data.
-2. No unit tests for isolated functions; all testing focuses on integrated projection results.
-3. Verify:
-   - Three-tier growth rate system application
-   - Liability accrual accuracy
-   - Cash flow execution per annual period
-   - Scenario delta inheritance working correctly
-   - Projection caching in nest_egg_yearly_values
+### Step 3: Timeline Testing
+Create test scenarios that validate:
+- Partial first year handling
+- Age progression
+- Event scheduling
+- End point determination
 
-## 6. Visualization & Finalization
-1. Introduce visualization only after projections are confirmed correct.
-2. Generate structured output:
-   - Annual nest egg projections per scenario
-   - Growth rate comparison visualizations
-   - Liability balance progression
-   - Final projection datasets ready for UI/API integration
-3. Finalize API layer if applicable, but only after all backend logic is validated.
+## 2. Calculation Engine Construction
+Build this after data access is solid.
 
-# Development Constraints
-- Cursor must not modularize excessively; functions should remain consolidated until exceeding maintainability limits.
-- No placeholder files; only generate files when logic is implemented.
-- No unnecessary helper functions that only wrap simple logic.
-- All projections must remain deterministic and aligned with business rules.
-- Always use provided database views for complex data relationships.
+### Step 1: Basic Tracking
+1. Implement simple nest egg balance tracking
+2. Add basic growth application
+3. Get cash flows working
+4. Test with simple scenarios
 
-# Summary
-Cursor must follow this structured workflow, ensuring efficient, predictable execution without unnecessary fragmentation. Emphasis should be placed on utilizing the provided database structure, particularly the views and delta table approach for scenarios, while maintaining accurate liability processing throughout the system.
+### Step 2: Growth System
+1. Start with just base growth rate
+2. Add asset-specific overrides
+3. Implement stepwise adjustments
+4. Test the full hierarchy
+
+### Step 3: Surplus System
+1. Build basic surplus tracking
+2. Add growth on surplus
+3. Implement new surplus accumulation
+4. Test full surplus lifecycle
+
+### Step 4: Full Integration
+1. Combine all calculations
+2. Test complex scenarios
+3. Verify all components work together
+4. Validate against expected results
+
+## 3. Scenario Management
+Only build this after calculations work perfectly.
+
+### Step 1: Creation & Modification
+1. Build scenario creation
+2. Implement override system
+3. Test modification patterns
+4. Verify inheritance
+
+### Step 2: Comparison System
+1. Build side-by-side comparison
+2. Test multiple scenarios
+3. Verify timeline alignment
+4. Validate calculations
+
+### Step 3: Advanced Features
+1. Add scenario cloning
+2. Implement batch updates
+3. Build comparison tooling
+4. Test edge cases
+
+## 4. Testing & Validation
+Comprehensive testing after core features work.
+
+### Step 1: Base Testing
+1. Test all calculation paths
+2. Verify scenario inheritance
+3. Validate timeline handling
+4. Check data integrity
+
+### Step 2: Integration Testing
+1. Test full workflows
+2. Verify complex scenarios
+3. Validate long projections
+4. Check performance
+
+### Step 3: Edge Cases
+1. Test partial years
+2. Verify extreme values
+3. Check error handling
+4. Validate boundaries
+
+## 5. Output Generation
+Final stage - only after everything else works.
+
+### Step 1: Basic Output
+1. Implement yearly data
+2. Build comparison outputs
+3. Create summary data
+4. Test formatting
+
+### Step 2: Advanced Output
+1. Add detailed breakdowns
+2. Implement filtering
+3. Build aggregation tools
+4. Test all formats
+
+# Checkpoint Requirements
+
+## After Data Foundation
+- All views returning correct data
+- Scenario inheritance working
+- Timeline mapping accurate
+- Base facts retrievable
+
+## After Calculations
+- Growth rates applying correctly
+- Surplus tracking accurate
+- Cash flows processing properly
+- Final positions calculating
+
+## After Scenario System
+- Overrides working perfectly
+- Comparisons functioning
+- Timeline consistent
+- Modifications tracking
+
+## Before Release
+- All calculations verified
+- Performance acceptable
+- Edge cases handled
+- Output validated
