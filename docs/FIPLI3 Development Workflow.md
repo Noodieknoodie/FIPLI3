@@ -2,6 +2,8 @@
 
 # Development Sequence
 
+!!!! The database is POPULATED WITH COMPLETE MOCK DATA - TESTING SHOULD BE DONE WITH THIS DATA. !!!! 
+
 ## 1. Data Foundation Layer
 Build this first - everything depends on solid data access.
 

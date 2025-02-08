@@ -1,4 +1,6 @@
-# FIPLI SCHEMA 
+-- FIPLI SCHEMA 
+-- the database is located in the backend\database\FIPLI.db file
+-- the information below is for you to see the precise structure of the database, it is not for you to use in your code.
 
 /*
 Financial Planning Database Schema
@@ -6,6 +8,7 @@ Purpose: Manages household financial plans and scenario projections
 Core concepts:
 - Plans contain base financial facts
 - Scenarios model different growth rates and assumptions
+
 - Nest egg represents assets included in retirement projections
 - All monetary values stored as REAL (floating point)
 */
