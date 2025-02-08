@@ -33,3 +33,41 @@ Database views are crucial - they handle the complex task of combining base fact
 
 ## Data Flow
 Database views combine related data efficiently, particularly for scenarios where base facts, overrides, and adjustments need consistent combining. FastAPI manages API layer while Python focuses on financial calculations. React Query handles frontend data fetching
+
+
+### Handled in SQL
+✅ Retirement Age Must Be Before Final Age  
+  CHECK (final_age > retirement_age)
+
+✅ Start Year Must Be Before or Equal to End Year  
+  CHECK (start_year <= end_year)
+
+✅ Growth Rates & Inflation Rates Must Be Within Valid Ranges  
+  CHECK (nest_egg_growth_rate >= -200 AND nest_egg_growth_rate <= 200)  
+  CHECK (inflation_rate >= -200 AND inflation_rate <= 200)
+
+✅ Retirement Income Start Age Cannot Be After End Age  
+  CHECK (end_age IS NULL OR start_age <= end_age)
+
+✅ Assets & Liabilities Cannot Be Negative  
+  CHECK (value >= 0)
+
+✅ Scenario Overrides for Retirement Age Only Apply to Reference Person  
+  scenario_person_overrides (scenario_id, person_id, overrides_retirement_age)
+
+✅ Exclusion from Scenario Works as Intended  
+  exclude_from_projection INTEGER DEFAULT 0
+
+### Handled in Python
+🚨 Partial-Year Calculation for First Year  
+  - First-year financial values must be prorated based on the scenario creation date.  
+  - SQL does not handle partial-year calculations.
+
+🚨 Overlapping Asset Growth Adjustments Must Be Prevented  
+  - Prevent conflicting stepwise growth adjustments for the same asset in overlapping years.  
+  - SQL does not enforce this.
+
+🚨 Fallback Behavior for Lapses in Growth Rate Adjustments  
+  - If no stepwise growth, use the independent growth rate.  
+  - If no independent growth rate, use the scenario/default growth rate.  
+  - SQL does not enforce fallback hierarchy.
