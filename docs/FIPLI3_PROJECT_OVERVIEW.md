@@ -1,5 +1,7 @@
 # FIPLI_README.md
-# FIPLI - Financial Planning Lite## Project Overview
+# FIPLI - Financial Planning Lite
+
+## Project Overview
 
 FIPLI is a specialized financial planning tool designed to help financial advisors model and compare different retirement scenarios for their clients. At its core, the system enables advisors to enter a household's complete financial picture - their assets, liabilities, income streams, and future events - and then create multiple "what-if" scenarios to explore different retirement strategies.
 
@@ -146,22 +148,22 @@ Each scenario starts as an exact copy of your base facts, but then you can modif
 
 ### Common Scenario Types I Create
 
-1. **Market Condition Scenarios**
+1. Market Condition Scenarios
    - "Conservative Growth" (lower return assumptions)
    - "Market Downturn" (negative returns early in retirement)
    - "High Inflation" (increased inflation rate)
 
-2. **Retirement Timing Scenarios**
+2. Retirement Timing Scenarios
    - "Early Retirement"
    - "Phased Retirement"
    - "Work Two More Years"
 
-3. **Lifestyle Scenarios**
+3. Lifestyle Scenarios
    - "Downsize Home"
    - "Travel More"
    - "Help with Grandkids' College"
 
-4. **Social Security Strategies**
+4. Social Security Strategies
    - "Both Claim at 62"
    - "Both Wait Until 70"
    - "File and Suspend"
@@ -224,17 +226,17 @@ Pro tip: I always look at the surplus numbers. Even if two scenarios end with th
 
 When presenting to clients, I typically create a set of scenarios that tell a story:
 
-1. **Base Case**
+1. Base Case
    - Current trajectory
    - Existing assumptions
    - Planned retirement date
 
-2. **Conservative Case**
+2. Conservative Case
    - Lower returns
    - Higher inflation
    - More spending
 
-3. **Optimized Strategy**
+3. Optimized Strategy
    - Adjusted retirement dates
    - Modified Social Security timing
    - Optimized spending patterns
