@@ -2,18 +2,6 @@
 -- the database is located in the backend\database\FIPLI.db file
 -- the information below is for you to see the precise structure of the database, it is not for you to use in your code.
 
-/*
-Financial Planning Database Schema
-Purpose: Manages household financial plans and scenario projections
-Core concepts:
-- Plans contain base financial facts
-- Scenarios model different growth rates and assumptions
-
-- Nest egg represents assets included in retirement projections
-- All monetary values stored as REAL (floating point)
-*/
-
-
 -- Core Tables ------------------------------------------------------------------
 
 CREATE TABLE households (
@@ -23,14 +11,7 @@ CREATE TABLE households (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TRIGGER update_households_timestamp 
-BEFORE UPDATE ON households
-FOR EACH ROW
-BEGIN
-    SET NEW.updated_at = CURRENT_TIMESTAMP;
-END;
-
-
+CREATE TRIGGER update_households_timestamp AFTER UPDATE ON households BEGIN UPDATE households SET updated_at = CURRENT_TIMESTAMP WHERE household_id = NEW.household_id; END;
 
 CREATE TABLE people (
     person_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,14 +36,7 @@ CREATE TABLE plans (
     FOREIGN KEY (reference_person_id) REFERENCES people(person_id) ON DELETE CASCADE
 );
 
-CREATE TRIGGER update_plans_timestamp 
-BEFORE UPDATE ON plans
-FOR EACH ROW
-BEGIN
-    SET NEW.updated_at = CURRENT_TIMESTAMP;
-END;
-
-
+CREATE TRIGGER update_plans_timestamp AFTER UPDATE ON plans BEGIN UPDATE plans SET updated_at = CURRENT_TIMESTAMP WHERE plan_id = NEW.plan_id; END;
 
 CREATE TABLE base_assumptions (
     plan_id INTEGER PRIMARY KEY,
@@ -140,13 +114,6 @@ CREATE TABLE liabilities (
    FOREIGN KEY (liability_category_id) REFERENCES liability_categories(liability_category_id) ON DELETE CASCADE
 );
 
--- Asset and liability indexes
-CREATE INDEX idx_assets_plan ON assets(plan_id);
-CREATE INDEX idx_assets_category ON assets(asset_category_id);
-CREATE INDEX idx_asset_owners_asset ON asset_owners(asset_id);
-CREATE INDEX idx_asset_owners_person ON asset_owners(person_id);
-CREATE INDEX idx_liabilities_plan ON liabilities(plan_id);
-CREATE INDEX idx_liabilities_category ON liabilities(liability_category_id);
 
 -- CASHFLOWS ------------
 
@@ -187,10 +154,6 @@ CREATE TABLE retirement_income_owners (
     FOREIGN KEY (person_id) REFERENCES people(person_id) ON DELETE CASCADE
 );
 
--- Cashflow indexes
-CREATE INDEX idx_inflows_timeline ON inflows_outflows(plan_id, start_year, end_year);
-CREATE INDEX idx_retirement_income_timeline ON retirement_income_plans(plan_id, start_age, end_age);
-CREATE INDEX idx_retirement_income_owners ON retirement_income_owners(person_id);
 
 -- Scenario Tables -------------------------------------------------------------
 
@@ -491,6 +454,15 @@ WHERE n.year = (
     WHERE n2.scenario_id = n.scenario_id
 );
 -- Indexes --------------------------------------------------------------------
+
+
+-- Asset and liability indexes
+CREATE INDEX idx_assets_plan ON assets(plan_id);
+CREATE INDEX idx_assets_category ON assets(asset_category_id);
+CREATE INDEX idx_asset_owners_asset ON asset_owners(asset_id);
+CREATE INDEX idx_asset_owners_person ON asset_owners(person_id);
+CREATE INDEX idx_liabilities_plan ON liabilities(plan_id);
+CREATE INDEX idx_liabilities_category ON liabilities(liability_category_id);
 
 -- Core relationship indexes
 CREATE INDEX idx_plans_household ON plans(household_id);
