@@ -16,6 +16,15 @@
 
 ## 2. Core Financial Rules
 
+
+- **Monetary values** are stored as `REAL` and should be formatted to **4 decimal places** (e.g., `12345.6789`).  
+- **Percentage-based values** (e.g., growth rates, interest rates) are stored as `REAL` and should be formatted to **2 decimal places** (e.g., `5.25`).  
+- **Timestamps** use `DATETIME DEFAULT CURRENT_TIMESTAMP` for creation and are updated with a **BEFORE UPDATE trigger**.  
+- **Rounding** follows **ROUND_HALF_UP** in Python and SQLite’s `ROUND(value, X)` for queries.  
+- **SQLite does not enforce decimal precision**, so formatting is handled in the application layer.
+
+
+
 ### **2.1 Growth Rate Constraints**
 #### **Rules**
 ```sql
