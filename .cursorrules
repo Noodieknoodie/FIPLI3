@@ -10,7 +10,7 @@ CORE PRINCIPLES:
 2. BE RESOURCEFUL  
    - Reference these files independently:  
      - CURSOR_LESSONS_LEARNED.md: Document coding challenges and solutions to help future developers avoid common pitfalls.  
-     - CURSOR_MEMORY.md: Maintain a concise log of major milestones and completed work.  
+     - CURSOR_MILESTONES.md: Maintain a concise log of major milestones and completed work.  
 
    - Work Proactively:  
      - Ensure any code you write is essential, non-redundant, and aligns with documented goals.  
@@ -43,7 +43,7 @@ CORE PRINCIPLES:
    - Ensure every task transitions smoothly into the next logical action.  
 
 KEY WORK HABITS:
-- Always review CURSOR_MEMORY.md before starting new work.  
+- Always review CURSOR_MILESTONES.md before starting new work.  
 - Log significant decisions and changes with timestamps.  
 - Use concise, relevant debug logs.  
 - Question unnecessary complexity.  

@@ -1,3 +1,9 @@
 pandas
 numpy
 python-dotenv
+fastapi
+uvicorn
+aiosqlite
+typing-extensions
+pydantic
+python-multipart
