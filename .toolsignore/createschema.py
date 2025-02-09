@@ -1,36 +1,52 @@
 import sqlite3
 import os
 
-# Get the absolute path to the project root (one level up from .toolsignore)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Define paths relative to project root
-DB_PATH = os.path.join(PROJECT_ROOT, 'backend', 'database', 'FIPLI_DB.db')
+DB_PATH = os.path.join(PROJECT_ROOT, 'backend', 'database', 'FIPLI.db')
 SCHEMA_PATH = os.path.join(PROJECT_ROOT, 'backend', 'database', 'schema.sql')
 
 def generate_schema():
-    # Connect to database
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Rest of your code stays exactly the same
     schema_query = """
     SELECT CASE 
+        -- Core Tables
         WHEN type = 'table' AND name = 'households' THEN '1'
-        WHEN type = 'table' AND name = 'sqlite_sequence' THEN '2'
-        WHEN type = 'table' AND name IN ('plans', 'asset_categories', 'liability_categories') THEN '3'
-        WHEN type = 'table' AND name IN ('assets', 'liabilities', 'inflows_outflows', 'retirement_income_plans', 'base_assumptions') THEN '4'
-        WHEN type = 'table' AND name = 'asset_growth_rate_configurations' THEN '5'
-        WHEN type = 'table' AND name LIKE 'scenario_%' THEN '6'
-        WHEN type = 'table' AND name IN ('projection_output', 'nest_egg_yearly_values') THEN '7'
-        WHEN type = 'view' THEN '8'
-        WHEN type = 'index' THEN '9'
-        ELSE '10'
+        WHEN type = 'table' AND name = 'people' THEN '2'
+        WHEN type = 'table' AND name = 'plans' THEN '3'
+        WHEN type = 'table' AND name = 'base_assumptions' THEN '4'
+        
+        -- Assets & Liabilities
+        WHEN type = 'table' AND name IN ('asset_categories', 'assets', 'asset_owners', 'asset_growth_adjustments') THEN '5'
+        WHEN type = 'table' AND name IN ('liability_categories', 'liabilities') THEN '6'
+        
+        -- Cashflows
+        WHEN type = 'table' AND name IN ('inflows_outflows', 'retirement_income_plans', 'retirement_income_owners') THEN '7'
+        
+        -- Scenarios
+        WHEN type = 'table' AND name = 'scenarios' THEN '8'
+        WHEN type = 'table' AND name LIKE 'scenario_%' THEN '9'
+        
+        -- Projection Output
+        WHEN type = 'table' AND name = 'nest_egg_yearly_values' THEN '10'
+        
+        -- Views
+        WHEN type = 'view' AND name LIKE 'scenario_%' THEN '11'
+        WHEN type = 'view' THEN '12'
+        
+        -- Indexes
+        WHEN type = 'index' AND name LIKE 'idx_asset%' THEN '13'
+        WHEN type = 'index' AND name LIKE 'idx_liability%' THEN '14'
+        WHEN type = 'index' AND name LIKE 'idx_scenario%' THEN '15'
+        WHEN type = 'index' THEN '16'
+        
+        ELSE '99'
     END || ' - ' || 
     CASE type 
-        WHEN 'table' THEN '📋 Table: '
-        WHEN 'view' THEN '👁️ View: '
-        WHEN 'index' THEN '🔍 Index: '
+        WHEN 'table' THEN '[TABLE] '
+        WHEN 'view' THEN '[VIEW] '
+        WHEN 'index' THEN '[INDEX] '
         ELSE type || ': '
     END || name AS ordered_name,
     sql
@@ -41,12 +57,26 @@ def generate_schema():
 
     cursor.execute(schema_query)
     
-    schema_content = "-- Auto-generated schema from FIPLI_DB.db\n\n"
+    schema_content = """-- FIPLI SCHEMA 
+-- the database is located in the backend/database/FIPLI.db file
+-- the information below is for you to see the precise structure of the database
+
+"""
     
-    for _, sql in cursor.fetchall():
+    current_section = None
+    for ordered_name, sql in cursor.fetchall():
+        # Extract section from ordered name
+        section = ordered_name.split(' - ')[1].split(']')[0].strip('[')
+        
+        # Add section headers
+        if section != current_section:
+            schema_content += f"\n-- {section}s {''.join(['-' for _ in range(70-len(section))])}\n\n"
+            current_section = section
+            
         schema_content += f"{sql};\n\n"
 
-    with open(SCHEMA_PATH, 'w') as f:
+    # Write with UTF-8 encoding
+    with open(SCHEMA_PATH, 'w', encoding='utf-8') as f:
         f.write(schema_content)
 
     conn.close()
